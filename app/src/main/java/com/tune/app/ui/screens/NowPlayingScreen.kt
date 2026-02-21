@@ -18,11 +18,14 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Favorite
+import androidx.compose.material.icons.filled.FavoriteBorder
 import androidx.compose.material.icons.filled.Pause
 import androidx.compose.material.icons.filled.SkipNext
 import androidx.compose.material.icons.filled.SkipPrevious
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Slider
 import androidx.compose.material3.Text
@@ -37,14 +40,19 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.tune.app.ui.components.BouncyIconButton
+import com.tune.app.ui.state.TuneViewModel
 import com.tune.app.ui.theme.CoralRed
 import com.tune.app.ui.theme.WarmOrange
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun NowPlayingScreen() {
+fun NowPlayingScreen(vm: TuneViewModel) {
     var progress by remember { mutableFloatStateOf(0.35f) }
+    val currentSong by vm.currentSong.collectAsStateWithLifecycle()
+    val favorites by vm.favorites.collectAsStateWithLifecycle()
+
     val waves = rememberInfiniteTransition(label = "waves")
     val waveScale by waves.animateFloat(
         initialValue = 0.8f,
@@ -66,8 +74,18 @@ fun NowPlayingScreen() {
                 .background(MaterialTheme.colorScheme.primary.copy(0.2f))
         )
 
-        Text("Late Night Drive", style = MaterialTheme.typography.titleLarge)
-        Text("Tune Artist", style = MaterialTheme.typography.bodyLarge)
+        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.SpaceBetween, modifier = Modifier.fillMaxWidth()) {
+            Column(Modifier.weight(1f)) {
+                Text(currentSong?.title ?: "No song selected", style = MaterialTheme.typography.titleLarge)
+                Text(currentSong?.artist ?: "Pick a song from Library", style = MaterialTheme.typography.bodyLarge)
+            }
+            currentSong?.let { song ->
+                val fav = song.id in favorites
+                IconButton(onClick = { vm.toggleFavorite(song.id) }) {
+                    Icon(if (fav) Icons.Default.Favorite else Icons.Default.FavoriteBorder, contentDescription = "favorite", tint = if (fav) CoralRed else MaterialTheme.colorScheme.onBackground)
+                }
+            }
+        }
 
         Slider(
             value = progress,

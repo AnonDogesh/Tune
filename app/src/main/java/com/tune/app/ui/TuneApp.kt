@@ -5,7 +5,6 @@ import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.spring
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
-import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
@@ -20,7 +19,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.ui.Modifier
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavDestination.Companion.hierarchy
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.compose.NavHost
@@ -36,10 +35,13 @@ import com.tune.app.ui.screens.PlaylistsScreen
 import com.tune.app.ui.screens.SearchScreen
 import com.tune.app.ui.screens.SettingsScreen
 import com.tune.app.ui.screens.SplashScreen
+import com.tune.app.ui.state.TuneViewModel
 
 @Composable
 fun TuneApp() {
     val navController = rememberNavController()
+    val vm: TuneViewModel = hiltViewModel()
+
     val items = listOf(
         Destination.Home to Icons.Default.Home,
         Destination.Playlists to Icons.Default.LibraryMusic,
@@ -58,9 +60,7 @@ fun TuneApp() {
                             selected = current?.hierarchy?.any { it.route == dest.route } == true,
                             onClick = {
                                 navController.navigate(dest.route) {
-                                    popUpTo(navController.graph.findStartDestination().id) {
-                                        saveState = true
-                                    }
+                                    popUpTo(navController.graph.findStartDestination().id) { saveState = true }
                                     launchSingleTop = true
                                     restoreState = true
                                 }
@@ -76,7 +76,7 @@ fun TuneApp() {
         NavHost(
             navController = navController,
             startDestination = Destination.Splash.route,
-            modifier = Modifier.padding(innerPadding)
+            modifier = androidx.compose.ui.Modifier.padding(innerPadding)
         ) {
             composable(Destination.Splash.route) {
                 SplashScreen { navController.navigate(Destination.Home.route) { popUpTo(0) } }
@@ -92,14 +92,15 @@ fun TuneApp() {
                 exitTransition = { fadeOut() + slideOutVertically() }
             ) {
                 HomeScreen(
+                    vm = vm,
                     onNowPlaying = { navController.navigate(Destination.NowPlaying.route) },
                     onArtist = { navController.navigate(Destination.Artist.route) },
                     onAlbum = { navController.navigate(Destination.Album.route) }
                 )
             }
-            composable(Destination.NowPlaying.route) { NowPlayingScreen() }
-            composable(Destination.Playlists.route) { PlaylistsScreen() }
-            composable(Destination.Search.route) { SearchScreen() }
+            composable(Destination.NowPlaying.route) { NowPlayingScreen(vm = vm) }
+            composable(Destination.Playlists.route) { PlaylistsScreen(vm = vm) }
+            composable(Destination.Search.route) { SearchScreen(vm = vm) }
             composable(Destination.Artist.route) { ArtistScreen() }
             composable(Destination.Album.route) { AlbumScreen() }
             composable(Destination.Settings.route) { SettingsScreen() }
