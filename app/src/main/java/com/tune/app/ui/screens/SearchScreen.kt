@@ -10,7 +10,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.weight
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
@@ -99,7 +98,7 @@ fun SearchScreen(vm: TuneViewModel, onNowPlaying: () -> Unit) {
                     horizontalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
                     AsyncImage(model = song.albumArtUri, contentDescription = null, modifier = Modifier.size(56.dp).background(Color.Black, CircleShape))
-                    Column(Modifier.weight(1f)) {
+                    Column(Modifier.fillMaxWidth(0.68f)) {
                         Text(song.title, color = Color.White)
                         Text("${song.artist} • ${song.album}", color = Color(0xFF2A9D8F))
                     }
