@@ -23,28 +23,29 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.PlayArrow
-import androidx.compose.material.icons.filled.Refresh
-import androidx.compose.material.icons.filled.Shuffle
+import androidx.compose.material3.AssistChip
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.tune.app.ui.state.TuneViewModel
+import com.tune.app.ui.theme.DeepTeal
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
@@ -67,14 +68,31 @@ fun HomeScreen(
         if (granted) vm.refreshLibrary() else launcher.launch(permission)
     }
 
-    Box {
+    Box(Modifier.fillMaxSize().background(DeepTeal)) {
         LazyColumn(
             modifier = Modifier.fillMaxSize(),
             contentPadding = PaddingValues(16.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
             item {
-                Text("Tune", style = MaterialTheme.typography.headlineLarge)
+                Text("Library", style = MaterialTheme.typography.headlineLarge, color = MaterialTheme.colorScheme.onPrimary)
+            }
+            item {
+                OutlinedTextField(
+                    value = "",
+                    onValueChange = {},
+                    enabled = false,
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(50),
+                    placeholder = { Text("Search your library...") }
+                )
+            }
+            item {
+                LazyRow(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                    items(listOf("All Tracks", "Playlists", "Artists", "Albums")) {
+                        AssistChip(onClick = {}, label = { Text(it) })
+                    }
+                }
             }
 
             if (!granted) {
@@ -90,14 +108,15 @@ fun HomeScreen(
             }
 
             if (songs.isNotEmpty()) {
+                item { Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) { Text("Recent", style = MaterialTheme.typography.titleLarge, color = MaterialTheme.colorScheme.secondary); Text("See all", color = MaterialTheme.colorScheme.primary) } }
                 item {
-                    Text("Recently Played", style = MaterialTheme.typography.titleLarge)
                     LazyRow(horizontalArrangement = Arrangement.spacedBy(12.dp), contentPadding = PaddingValues(top = 8.dp)) {
                         items(songs.take(6)) { song ->
-                            Card(shape = RoundedCornerShape(20.dp), colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)) {
-                                Column(Modifier.padding(12.dp).clickable { vm.playSong(song); onNowPlaying() }) {
-                                    Box(Modifier.size(130.dp).background(MaterialTheme.colorScheme.primary.copy(0.2f), RoundedCornerShape(20.dp)))
+                            Card(shape = RoundedCornerShape(26.dp), colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)) {
+                                Column(Modifier.padding(12.dp).clickable { vm.playSongFromLibrary(song); onNowPlaying() }) {
+                                    Box(Modifier.size(160.dp).background(MaterialTheme.colorScheme.primary.copy(0.2f), RoundedCornerShape(22.dp)))
                                     Text(song.title, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                                    Text(song.artist, maxLines = 1, style = MaterialTheme.typography.bodyMedium)
                                 }
                             }
                         }
@@ -105,33 +124,25 @@ fun HomeScreen(
                 }
             }
 
-            stickyHeader {
-                Row(
-                    Modifier.fillMaxWidth().background(MaterialTheme.colorScheme.background).padding(vertical = 8.dp),
-                    horizontalArrangement = Arrangement.SpaceBetween
-                ) {
-                    Text("All Songs", style = MaterialTheme.typography.titleLarge)
-                    Icon(Icons.Default.Refresh, contentDescription = "refresh", modifier = Modifier.rotate(12f))
-                }
-            }
+            item { Text("All Tracks", style = MaterialTheme.typography.titleLarge, color = MaterialTheme.colorScheme.secondary) }
 
             if (songs.isEmpty()) {
-                item { Text("No songs found yet. Pull to refresh after granting permission.") }
+                item { Text("No songs found yet. Grant permission and refresh.", color = MaterialTheme.colorScheme.onPrimary) }
             } else {
                 items(songs) { song ->
-                    Card(modifier = Modifier.fillMaxWidth().clickable { vm.playSong(song); onNowPlaying() }, shape = RoundedCornerShape(20.dp)) {
+                    Card(modifier = Modifier.fillMaxWidth().clickable { vm.playSongFromLibrary(song); onNowPlaying() }, shape = RoundedCornerShape(28.dp), colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface.copy(alpha = 0.15f))) {
                         Row(
                             modifier = Modifier.padding(12.dp),
                             verticalAlignment = Alignment.CenterVertically,
                             horizontalArrangement = Arrangement.spacedBy(12.dp)
                         ) {
-                            Box(Modifier.size(56.dp).background(MaterialTheme.colorScheme.secondary.copy(0.25f), RoundedCornerShape(16.dp)))
+                            Box(Modifier.size(56.dp).background(MaterialTheme.colorScheme.secondary.copy(0.25f), CircleShape))
                             Column(Modifier.weight(1f)) {
-                                Text(song.title)
-                                Text(song.artist, style = MaterialTheme.typography.bodyMedium)
+                                Text(song.title, color = MaterialTheme.colorScheme.onPrimary)
+                                Text(song.artist, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.secondary)
                             }
-                            Text(song.duration, style = MaterialTheme.typography.labelLarge)
-                            Icon(Icons.Default.PlayArrow, contentDescription = null, tint = MaterialTheme.colorScheme.tertiary)
+                            Text(song.duration, style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.onPrimary.copy(0.7f))
+                            Icon(Icons.Default.MoreVert, contentDescription = null, tint = MaterialTheme.colorScheme.onPrimary.copy(0.7f))
                         }
                     }
                 }
@@ -139,12 +150,10 @@ fun HomeScreen(
         }
 
         FloatingActionButton(
-            onClick = {
-                songs.firstOrNull()?.let { vm.playSong(it); onNowPlaying() }
-            },
+            onClick = { songs.firstOrNull()?.let { vm.playSongFromLibrary(it); onNowPlaying() } },
             modifier = Modifier.align(Alignment.BottomEnd).padding(16.dp),
             shape = CircleShape,
             containerColor = MaterialTheme.colorScheme.tertiary
-        ) { Icon(Icons.Default.Shuffle, contentDescription = "shuffle all") }
+        ) { Icon(Icons.Default.PlayArrow, contentDescription = "play") }
     }
 }

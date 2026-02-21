@@ -21,8 +21,11 @@ import androidx.compose.material.icons.filled.Pause
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.filled.SkipNext
 import androidx.compose.material.icons.filled.SkipPrevious
+import androidx.compose.material.icons.filled.Repeat
+import androidx.compose.material.icons.filled.RepeatOne
 import androidx.compose.material.icons.filled.SwapHoriz
-import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -30,6 +33,9 @@ import androidx.compose.material3.Slider
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -43,7 +49,6 @@ import com.tune.app.ui.theme.CoralRed
 import com.tune.app.ui.theme.DeepTeal
 import com.tune.app.ui.theme.SeaGreen
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun NowPlayingScreen(vm: TuneViewModel) {
     val currentSong by vm.currentSong.collectAsStateWithLifecycle()
@@ -51,7 +56,13 @@ fun NowPlayingScreen(vm: TuneViewModel) {
     val isPlaying by vm.isPlaying.collectAsStateWithLifecycle()
     val positionMs by vm.positionMs.collectAsStateWithLifecycle()
     val durationMs by vm.durationMs.collectAsStateWithLifecycle()
+    val queueName by vm.queueName.collectAsStateWithLifecycle()
+    val shuffleEnabled by vm.isShuffleEnabled.collectAsStateWithLifecycle()
+    val repeatMode by vm.currentRepeatMode.collectAsStateWithLifecycle()
+    val customPlaylists by vm.customPlaylistNames.collectAsStateWithLifecycle()
+
     val progress = (positionMs.toFloat() / durationMs.toFloat()).coerceIn(0f, 1f)
+    var menuExpanded by remember { mutableStateOf(false) }
 
     Column(
         modifier = Modifier
@@ -66,10 +77,22 @@ fun NowPlayingScreen(vm: TuneViewModel) {
             }
             Column(horizontalAlignment = Alignment.CenterHorizontally) {
                 Text("NOW PLAYING FROM", color = Color.White.copy(0.5f), fontWeight = FontWeight.SemiBold)
-                Text("Favorites Playlist", color = Color.White)
+                Text(queueName, color = Color.White)
             }
-            IconButton(modifier = Modifier.background(Color.White.copy(0.08f), CircleShape), onClick = {}) {
-                Icon(Icons.Default.MoreVert, contentDescription = null, tint = Color.White)
+            Box {
+                IconButton(modifier = Modifier.background(Color.White.copy(0.08f), CircleShape), onClick = { menuExpanded = true }) {
+                    Icon(Icons.Default.MoreVert, contentDescription = null, tint = Color.White)
+                }
+                DropdownMenu(expanded = menuExpanded, onDismissRequest = { menuExpanded = false }) {
+                    customPlaylists.forEach { playlist ->
+                        DropdownMenuItem(text = { Text("Add to $playlist") }, onClick = {
+                            vm.addCurrentSongToPlaylist(playlist)
+                            menuExpanded = false
+                        })
+                    }
+                    DropdownMenuItem(text = { Text("Sleep timer (10 min)") }, onClick = { menuExpanded = false })
+                    DropdownMenuItem(text = { Text("Song details") }, onClick = { menuExpanded = false })
+                }
             }
         }
 
@@ -90,33 +113,20 @@ fun NowPlayingScreen(vm: TuneViewModel) {
             )
         }
 
-        Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.fillMaxWidth()) {
-            Text(currentSong?.title ?: "Pick a song", color = Color(0xFFE9C46A), style = MaterialTheme.typography.headlineLarge)
-            Text(currentSong?.artist ?: "Unknown Artist", color = Color.White.copy(0.6f), style = MaterialTheme.typography.titleLarge)
+        Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxWidth()) {
+            Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.weight(1f)) {
+                Text(currentSong?.title ?: "Pick a song", color = Color(0xFFE9C46A), style = MaterialTheme.typography.headlineLarge)
+                Text(currentSong?.artist ?: "Unknown Artist", color = Color.White.copy(0.6f), style = MaterialTheme.typography.titleLarge)
+            }
+            currentSong?.let { song ->
+                val fav = song.id in favorites
+                IconButton(onClick = { vm.toggleFavorite(song.id) }) {
+                    Icon(if (fav) Icons.Default.Favorite else Icons.Default.FavoriteBorder, contentDescription = "favorite", tint = if (fav) CoralRed else Color(0xFFD39A5D), modifier = Modifier.size(40.dp))
+                }
+            }
         }
 
-        Slider(
-            value = progress,
-            onValueChange = vm::seekToFraction,
-            modifier = Modifier.fillMaxWidth(),
-            thumb = { Box(Modifier.size(0.dp)) },
-            track = {
-                Box(
-                    Modifier
-                        .fillMaxWidth()
-                        .height(10.dp)
-                        .clip(RoundedCornerShape(100))
-                        .background(Color.White.copy(0.12f))
-                )
-                Box(
-                    Modifier
-                        .fillMaxWidth(progress)
-                        .height(10.dp)
-                        .clip(RoundedCornerShape(100))
-                        .background(CoralRed)
-                )
-            }
-        )
+        Slider(value = progress, onValueChange = vm::seekToFraction, modifier = Modifier.fillMaxWidth())
 
         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
             Text(formatMs(positionMs), color = Color.White.copy(0.4f))
@@ -128,21 +138,20 @@ fun NowPlayingScreen(vm: TuneViewModel) {
             horizontalArrangement = Arrangement.SpaceEvenly,
             verticalAlignment = Alignment.CenterVertically
         ) {
-            IconButton(onClick = {}) { Icon(Icons.Default.SwapHoriz, contentDescription = null, tint = Color(0xFFD39A5D)) }
+            IconButton(onClick = vm::toggleShuffle) { Icon(Icons.Default.SwapHoriz, contentDescription = null, tint = if (shuffleEnabled) SeaGreen else Color(0xFFD39A5D)) }
             IconButton(onClick = vm::previousSong) { Icon(Icons.Default.SkipPrevious, contentDescription = null, tint = Color.White, modifier = Modifier.size(42.dp)) }
-            IconButton(
-                modifier = Modifier.size(100.dp).background(SeaGreen, CircleShape),
-                onClick = vm::togglePlayPause
-            ) {
+            IconButton(modifier = Modifier.size(100.dp).background(SeaGreen, CircleShape), onClick = vm::togglePlayPause) {
                 Icon(if (isPlaying) Icons.Default.Pause else Icons.Default.PlayArrow, contentDescription = null, tint = Color.White, modifier = Modifier.size(52.dp))
             }
             IconButton(onClick = vm::nextSong) { Icon(Icons.Default.SkipNext, contentDescription = null, tint = Color.White, modifier = Modifier.size(42.dp)) }
-            currentSong?.let { song ->
-                val fav = song.id in favorites
-                IconButton(onClick = { vm.toggleFavorite(song.id) }) {
-                    Icon(if (fav) Icons.Default.Favorite else Icons.Default.FavoriteBorder, contentDescription = "favorite", tint = if (fav) CoralRed else Color(0xFFD39A5D))
+            IconButton(onClick = vm::cycleRepeatMode) {
+                val icon = when (repeatMode) {
+                    TuneViewModel.RepeatMode.Off -> Icons.Default.Repeat
+                    TuneViewModel.RepeatMode.All -> Icons.Default.Repeat
+                    TuneViewModel.RepeatMode.One -> Icons.Default.RepeatOne
                 }
-            } ?: IconButton(onClick = {}) { Icon(Icons.Default.FavoriteBorder, null, tint = Color(0xFFD39A5D)) }
+                Icon(icon, contentDescription = "repeat", tint = if (repeatMode == TuneViewModel.RepeatMode.Off) Color(0xFFD39A5D) else SeaGreen)
+            }
         }
     }
 }

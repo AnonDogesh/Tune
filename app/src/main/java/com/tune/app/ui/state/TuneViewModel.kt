@@ -15,6 +15,7 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
+import kotlin.random.Random
 
 @HiltViewModel
 class TuneViewModel @Inject constructor(
@@ -22,10 +23,17 @@ class TuneViewModel @Inject constructor(
     private val playback: PlaybackController
 ) : ViewModel() {
 
+    enum class RepeatMode { Off, All, One }
+
     private val query = MutableStateFlow("")
     private val customPlaylists = MutableStateFlow(listOf("Roadtrip"))
+    private val playlistSongs = MutableStateFlow(mapOf("Roadtrip" to setOf<Long>()))
     private val favoriteSongIds = MutableStateFlow(setOf<Long>())
     private val nowPlayingSong = MutableStateFlow<Song?>(null)
+    private val activeQueue = MutableStateFlow<List<Song>>(emptyList())
+    private val activeQueueName = MutableStateFlow("Library")
+    private val shuffleEnabled = MutableStateFlow(false)
+    private val repeatMode = MutableStateFlow(RepeatMode.Off)
 
     val songs: StateFlow<List<Song>> = repository.observeSongs().stateIn(
         viewModelScope,
@@ -34,8 +42,7 @@ class TuneViewModel @Inject constructor(
     )
 
     val filteredSongs: StateFlow<List<Song>> = combine(songs, query) { allSongs, q ->
-        if (q.isBlank()) allSongs
-        else allSongs.filter {
+        if (q.isBlank()) allSongs else allSongs.filter {
             it.title.contains(q, true) || it.artist.contains(q, true) || it.album.contains(q, true)
         }
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
@@ -50,6 +57,10 @@ class TuneViewModel @Inject constructor(
     val isPlaying: StateFlow<Boolean> = playback.isPlaying
     val positionMs: StateFlow<Long> = playback.positionMs
     val durationMs: StateFlow<Long> = playback.durationMs
+    val queueName: StateFlow<String> = activeQueueName
+    val isShuffleEnabled: StateFlow<Boolean> = shuffleEnabled
+    val currentRepeatMode: StateFlow<RepeatMode> = repeatMode
+    val customPlaylistNames: StateFlow<List<String>> = customPlaylists
 
     init {
         viewModelScope.launch {
@@ -60,13 +71,30 @@ class TuneViewModel @Inject constructor(
         }
     }
 
-    fun refreshLibrary() = viewModelScope.launch { repository.refreshLibrary() }
-
-    fun setSearchQuery(value: String) {
-        query.value = value
+    fun refreshLibrary() = viewModelScope.launch {
+        repository.refreshLibrary()
+        val ids = songs.value.map { it.id }.toSet()
+        playlistSongs.update { map ->
+            map.mapValues { (_, values) -> values.intersect(ids) }
+        }
     }
 
-    fun playSong(song: Song) {
+    fun setSearchQuery(value: String) { query.value = value }
+
+    fun playSongFromLibrary(song: Song) {
+        activeQueue.value = songs.value
+        activeQueueName.value = "Library"
+        playSong(song)
+    }
+
+    fun playSongFromPlaylist(playlistLabel: String, song: Song) {
+        val queue = getPlaylistSongs(playlistLabel)
+        activeQueue.value = queue
+        activeQueueName.value = playlistLabel
+        playSong(song)
+    }
+
+    private fun playSong(song: Song) {
         nowPlayingSong.value = song
         if (song.path.isNotBlank()) playback.playFromUri(song.path)
     }
@@ -74,22 +102,45 @@ class TuneViewModel @Inject constructor(
     fun togglePlayPause() = playback.togglePlayPause()
 
     fun nextSong() {
-        val list = songs.value
+        val queue = activeQueue.value.ifEmpty { songs.value }
         val current = nowPlayingSong.value ?: return
-        val index = list.indexOfFirst { it.id == current.id }
-        if (index >= 0 && list.isNotEmpty()) playSong(list[(index + 1) % list.size])
+        if (queue.isEmpty()) return
+
+        if (repeatMode.value == RepeatMode.One) {
+            playback.seekTo(0)
+            playback.togglePlayPause()
+            return
+        }
+
+        val next = if (shuffleEnabled.value) {
+            queue[Random.nextInt(queue.size)]
+        } else {
+            val index = queue.indexOfFirst { it.id == current.id }
+            if (index == -1) queue.first()
+            else if (index == queue.lastIndex) {
+                if (repeatMode.value == RepeatMode.All) queue.first() else current
+            } else queue[index + 1]
+        }
+
+        if (next.id != current.id || repeatMode.value == RepeatMode.All || shuffleEnabled.value) playSong(next)
     }
 
     fun previousSong() {
-        val list = songs.value
+        val queue = activeQueue.value.ifEmpty { songs.value }
         val current = nowPlayingSong.value ?: return
-        val index = list.indexOfFirst { it.id == current.id }
-        if (index >= 0 && list.isNotEmpty()) playSong(list[(index - 1 + list.size) % list.size])
+        if (queue.isEmpty()) return
+
+        val prev = if (shuffleEnabled.value) {
+            queue[Random.nextInt(queue.size)]
+        } else {
+            val index = queue.indexOfFirst { it.id == current.id }
+            if (index <= 0) queue.last() else queue[index - 1]
+        }
+        playSong(prev)
     }
 
     fun seekToFraction(progress: Float) {
-        val duration = durationMs.value
-        playback.seekTo((duration * progress).toLong())
+        playback.seekTo((durationMs.value * progress).toLong())
     }
 
     fun toggleFavorite(songId: Long) {
@@ -99,5 +150,52 @@ class TuneViewModel @Inject constructor(
     fun createPlaylist(name: String) {
         if (name.isBlank()) return
         customPlaylists.update { old -> if (old.contains(name)) old else old + name }
+        playlistSongs.update { map -> if (map.containsKey(name)) map else map + (name to emptySet()) }
+    }
+
+    fun addCurrentSongToPlaylist(name: String) {
+        val songId = nowPlayingSong.value?.id ?: return
+        addSongToPlaylist(name, songId)
+    }
+
+    fun addSongToPlaylist(name: String, songId: Long) {
+        if (name.startsWith("Favorites")) return
+        playlistSongs.update { map ->
+            val current = map[name].orEmpty()
+            map + (name to (current + songId))
+        }
+    }
+
+    fun removeSongFromPlaylist(name: String, songId: Long) {
+        if (name.startsWith("Favorites")) {
+            toggleFavorite(songId)
+            return
+        }
+        playlistSongs.update { map ->
+            val current = map[name].orEmpty()
+            map + (name to (current - songId))
+        }
+    }
+
+    fun getPlaylistSongs(playlistLabel: String): List<Song> {
+        val all = songs.value
+        return if (playlistLabel.startsWith("Favorites")) {
+            all.filter { it.id in favoriteSongIds.value }
+        } else {
+            val ids = playlistSongs.value[playlistLabel].orEmpty()
+            all.filter { it.id in ids }
+        }
+    }
+
+    fun toggleShuffle() {
+        shuffleEnabled.update { !it }
+    }
+
+    fun cycleRepeatMode() {
+        repeatMode.value = when (repeatMode.value) {
+            RepeatMode.Off -> RepeatMode.All
+            RepeatMode.All -> RepeatMode.One
+            RepeatMode.One -> RepeatMode.Off
+        }
     }
 }
