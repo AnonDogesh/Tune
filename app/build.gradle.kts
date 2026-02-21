@@ -8,12 +8,12 @@ plugins {
 
 android {
     namespace = "com.tune.app"
-    compileSdk = 35
+    compileSdk = 34
 
     defaultConfig {
         applicationId = "com.tune.app"
         minSdk = 26
-        targetSdk = 35
+        targetSdk = 34
         versionCode = 1
         versionName = "1.0.0"
 
@@ -83,7 +83,6 @@ dependencies {
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.8.1")
 
     implementation("com.airbnb.android:lottie-compose:6.4.1")
-    implementation("com.github.alxrm:waveformSeekBar:v1.2")
 
     testImplementation("junit:junit:4.13.2")
 }
