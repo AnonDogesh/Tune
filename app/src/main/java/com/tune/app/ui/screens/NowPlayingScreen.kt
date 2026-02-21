@@ -21,6 +21,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Pause
 import androidx.compose.material.icons.filled.SkipNext
 import androidx.compose.material.icons.filled.SkipPrevious
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Slider
@@ -40,6 +41,7 @@ import com.tune.app.ui.components.BouncyIconButton
 import com.tune.app.ui.theme.CoralRed
 import com.tune.app.ui.theme.WarmOrange
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun NowPlayingScreen() {
     var progress by remember { mutableFloatStateOf(0.35f) }
@@ -101,7 +103,7 @@ fun NowPlayingScreen() {
                 Box(
                     Modifier
                         .size(width = 6.dp, height = 20.dp)
-                        .scale(scaleY = waveScale)
+                        .scale(scaleX = 1f, scaleY = waveScale)
                         .clip(RoundedCornerShape(6.dp))
                         .background(MaterialTheme.colorScheme.primary)
                 )
