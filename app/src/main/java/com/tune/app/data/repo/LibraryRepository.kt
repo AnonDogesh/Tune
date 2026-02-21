@@ -28,6 +28,7 @@ class LibraryRepository @Inject constructor(
             MediaStore.Audio.Media.ARTIST,
             MediaStore.Audio.Media.ALBUM,
             MediaStore.Audio.Media.DURATION,
+            MediaStore.Audio.Media.ALBUM_ID,
             MediaStore.Audio.Media.IS_MUSIC
         )
         val selection = "${MediaStore.Audio.Media.IS_MUSIC} != 0"
@@ -39,6 +40,7 @@ class LibraryRepository @Inject constructor(
             val artistCol = cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.ARTIST)
             val albumCol = cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.ALBUM)
             val durationCol = cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.DURATION)
+            val albumIdCol = cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.ALBUM_ID)
 
             while (cursor.moveToNext()) {
                 val id = cursor.getLong(idCol)
@@ -46,14 +48,18 @@ class LibraryRepository @Inject constructor(
                 val artist = cursor.getString(artistCol) ?: "Unknown Artist"
                 val album = cursor.getString(albumCol) ?: "Unknown Album"
                 val durationMs = cursor.getLong(durationCol)
-                val uri = ContentUris.withAppendedId(collection, id).toString()
+                val albumId = cursor.getLong(albumIdCol)
+                val songUri = ContentUris.withAppendedId(collection, id).toString()
+                val albumArtUri = ContentUris.withAppendedId(MediaStore.Audio.Albums.EXTERNAL_CONTENT_URI, albumId).toString()
+
                 songs += Song(
                     id = id,
                     title = title,
                     artist = artist,
                     album = album,
                     duration = formatDuration(durationMs),
-                    path = uri
+                    path = songUri,
+                    albumArtUri = albumArtUri
                 )
             }
         }

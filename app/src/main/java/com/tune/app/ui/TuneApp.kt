@@ -149,7 +149,7 @@ fun TuneApp() {
             }
             composable(Destination.NowPlaying.route) { NowPlayingScreen(vm = vm) }
             composable(Destination.Playlists.route) { PlaylistsScreen(vm = vm) }
-            composable(Destination.Search.route) { SearchScreen(vm = vm) }
+            composable(Destination.Search.route) { SearchScreen(vm = vm, onNowPlaying = { navController.navigate(Destination.NowPlaying.route) }) }
             composable(Destination.Artist.route) { ArtistScreen() }
             composable(Destination.Album.route) { AlbumScreen() }
             composable(Destination.Settings.route) { SettingsScreen() }

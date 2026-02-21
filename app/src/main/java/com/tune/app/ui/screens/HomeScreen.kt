@@ -25,7 +25,6 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.PlayArrow
-import androidx.compose.material3.AssistChip
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -44,6 +43,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import coil.compose.AsyncImage
 import com.tune.app.ui.state.TuneViewModel
 import com.tune.app.ui.theme.DeepTeal
 
@@ -56,6 +56,7 @@ fun HomeScreen(
     onAlbum: () -> Unit
 ) {
     val songs by vm.songs.collectAsStateWithLifecycle()
+    val recentSongs by vm.recentSongs.collectAsStateWithLifecycle()
     val context = LocalContext.current
     val permission = if (Build.VERSION.SDK_INT >= 33) Manifest.permission.READ_MEDIA_AUDIO else Manifest.permission.READ_EXTERNAL_STORAGE
     val granted = ContextCompat.checkSelfPermission(context, permission) == PackageManager.PERMISSION_GRANTED
@@ -74,9 +75,7 @@ fun HomeScreen(
             contentPadding = PaddingValues(16.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-            item {
-                Text("Library", style = MaterialTheme.typography.headlineLarge, color = MaterialTheme.colorScheme.onPrimary)
-            }
+            item { Text("Library", style = MaterialTheme.typography.headlineLarge, color = MaterialTheme.colorScheme.onPrimary) }
             item {
                 OutlinedTextField(
                     value = "",
@@ -86,13 +85,6 @@ fun HomeScreen(
                     shape = RoundedCornerShape(50),
                     placeholder = { Text("Search your library...") }
                 )
-            }
-            item {
-                LazyRow(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                    items(listOf("All Tracks", "Playlists", "Artists", "Albums")) {
-                        AssistChip(onClick = {}, label = { Text(it) })
-                    }
-                }
             }
 
             if (!granted) {
@@ -107,14 +99,14 @@ fun HomeScreen(
                 }
             }
 
-            if (songs.isNotEmpty()) {
-                item { Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) { Text("Recent", style = MaterialTheme.typography.titleLarge, color = MaterialTheme.colorScheme.secondary); Text("See all", color = MaterialTheme.colorScheme.primary) } }
+            if (recentSongs.isNotEmpty()) {
+                item { Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) { Text("Recent", style = MaterialTheme.typography.titleLarge, color = MaterialTheme.colorScheme.secondary); Text("${recentSongs.size}", color = MaterialTheme.colorScheme.primary) } }
                 item {
                     LazyRow(horizontalArrangement = Arrangement.spacedBy(12.dp), contentPadding = PaddingValues(top = 8.dp)) {
-                        items(songs.take(6)) { song ->
+                        items(recentSongs.take(10)) { song ->
                             Card(shape = RoundedCornerShape(26.dp), colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)) {
                                 Column(Modifier.padding(12.dp).clickable { vm.playSongFromLibrary(song); onNowPlaying() }) {
-                                    Box(Modifier.size(160.dp).background(MaterialTheme.colorScheme.primary.copy(0.2f), RoundedCornerShape(22.dp)))
+                                    AsyncImage(model = song.albumArtUri, contentDescription = null, modifier = Modifier.size(160.dp).background(MaterialTheme.colorScheme.primary.copy(0.2f), RoundedCornerShape(22.dp)))
                                     Text(song.title, maxLines = 1, overflow = TextOverflow.Ellipsis)
                                     Text(song.artist, maxLines = 1, style = MaterialTheme.typography.bodyMedium)
                                 }
@@ -136,7 +128,7 @@ fun HomeScreen(
                             verticalAlignment = Alignment.CenterVertically,
                             horizontalArrangement = Arrangement.spacedBy(12.dp)
                         ) {
-                            Box(Modifier.size(56.dp).background(MaterialTheme.colorScheme.secondary.copy(0.25f), CircleShape))
+                            AsyncImage(model = song.albumArtUri, contentDescription = null, modifier = Modifier.size(56.dp).background(MaterialTheme.colorScheme.secondary.copy(0.25f), CircleShape))
                             Column(Modifier.weight(1f)) {
                                 Text(song.title, color = MaterialTheme.colorScheme.onPrimary)
                                 Text(song.artist, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.secondary)

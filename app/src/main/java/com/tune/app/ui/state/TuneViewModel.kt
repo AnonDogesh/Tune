@@ -26,6 +26,7 @@ class TuneViewModel @Inject constructor(
     enum class RepeatMode { Off, All, One }
 
     private val query = MutableStateFlow("")
+    private val searchHistory = MutableStateFlow(listOf("Chill lofi", "Arctic Monkeys", "After Hours"))
     private val customPlaylists = MutableStateFlow(listOf("Roadtrip"))
     private val playlistSongs = MutableStateFlow(mapOf("Roadtrip" to setOf<Long>()))
     private val favoriteSongIds = MutableStateFlow(setOf<Long>())
@@ -34,17 +35,18 @@ class TuneViewModel @Inject constructor(
     private val activeQueueName = MutableStateFlow("Library")
     private val shuffleEnabled = MutableStateFlow(false)
     private val repeatMode = MutableStateFlow(RepeatMode.Off)
+    private val recentPlayedIds = MutableStateFlow<List<Long>>(emptyList())
 
-    val songs: StateFlow<List<Song>> = repository.observeSongs().stateIn(
-        viewModelScope,
-        SharingStarted.WhileSubscribed(5000),
-        emptyList()
-    )
+    val songs: StateFlow<List<Song>> = repository.observeSongs().stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
     val filteredSongs: StateFlow<List<Song>> = combine(songs, query) { allSongs, q ->
         if (q.isBlank()) allSongs else allSongs.filter {
             it.title.contains(q, true) || it.artist.contains(q, true) || it.album.contains(q, true)
         }
+    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+
+    val recentSongs: StateFlow<List<Song>> = combine(songs, recentPlayedIds) { allSongs, ids ->
+        ids.mapNotNull { id -> allSongs.find { it.id == id } }.take(10)
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
     val playlists: StateFlow<List<String>> = combine(customPlaylists, favoriteSongIds) { custom, favorites ->
@@ -53,11 +55,13 @@ class TuneViewModel @Inject constructor(
 
     val favorites: StateFlow<Set<Long>> = favoriteSongIds
     val searchQuery: StateFlow<String> = query
+    val recentSearches: StateFlow<List<String>> = searchHistory
     val currentSong: StateFlow<Song?> = nowPlayingSong
     val isPlaying: StateFlow<Boolean> = playback.isPlaying
     val positionMs: StateFlow<Long> = playback.positionMs
     val durationMs: StateFlow<Long> = playback.durationMs
     val queueName: StateFlow<String> = activeQueueName
+    val queueSongs: StateFlow<List<Song>> = activeQueue
     val isShuffleEnabled: StateFlow<Boolean> = shuffleEnabled
     val currentRepeatMode: StateFlow<RepeatMode> = repeatMode
     val customPlaylistNames: StateFlow<List<String>> = customPlaylists
@@ -69,17 +73,27 @@ class TuneViewModel @Inject constructor(
                 delay(500)
             }
         }
+        viewModelScope.launch {
+            playback.trackEnded.collect { handleTrackEnded() }
+        }
     }
 
     fun refreshLibrary() = viewModelScope.launch {
         repository.refreshLibrary()
         val ids = songs.value.map { it.id }.toSet()
-        playlistSongs.update { map ->
-            map.mapValues { (_, values) -> values.intersect(ids) }
+        playlistSongs.update { map -> map.mapValues { (_, values) -> values.intersect(ids) } }
+    }
+
+    fun setSearchQuery(value: String) {
+        query.value = value
+        if (value.length > 2) {
+            searchHistory.update { old -> (listOf(value) + old.filterNot { it.equals(value, true) }).take(5) }
         }
     }
 
-    fun setSearchQuery(value: String) { query.value = value }
+    fun removeSearch(value: String) {
+        searchHistory.update { it - value }
+    }
 
     fun playSongFromLibrary(song: Song) {
         activeQueue.value = songs.value
@@ -96,7 +110,18 @@ class TuneViewModel @Inject constructor(
 
     private fun playSong(song: Song) {
         nowPlayingSong.value = song
+        recentPlayedIds.update { ids -> (listOf(song.id) + ids.filterNot { it == song.id }).take(10) }
         if (song.path.isNotBlank()) playback.playFromUri(song.path)
+    }
+
+    private fun handleTrackEnded() {
+        when (repeatMode.value) {
+            RepeatMode.One -> {
+                playback.seekTo(0)
+                playback.play()
+            }
+            else -> nextSong()
+        }
     }
 
     fun togglePlayPause() = playback.togglePlayPause()
@@ -106,20 +131,16 @@ class TuneViewModel @Inject constructor(
         val current = nowPlayingSong.value ?: return
         if (queue.isEmpty()) return
 
-        if (repeatMode.value == RepeatMode.One) {
-            playback.seekTo(0)
-            playback.togglePlayPause()
-            return
-        }
-
         val next = if (shuffleEnabled.value) {
             queue[Random.nextInt(queue.size)]
         } else {
             val index = queue.indexOfFirst { it.id == current.id }
-            if (index == -1) queue.first()
-            else if (index == queue.lastIndex) {
-                if (repeatMode.value == RepeatMode.All) queue.first() else current
-            } else queue[index + 1]
+            when {
+                index == -1 -> queue.first()
+                index == queue.lastIndex && repeatMode.value == RepeatMode.All -> queue.first()
+                index == queue.lastIndex -> current
+                else -> queue[index + 1]
+            }
         }
 
         if (next.id != current.id || repeatMode.value == RepeatMode.All || shuffleEnabled.value) playSong(next)

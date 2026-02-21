@@ -17,7 +17,9 @@ object AppModule {
     @Provides
     @Singleton
     fun provideDatabase(@ApplicationContext context: Context): TuneDatabase =
-        Room.databaseBuilder(context, TuneDatabase::class.java, "tune.db").build()
+        Room.databaseBuilder(context, TuneDatabase::class.java, "tune.db")
+            .fallbackToDestructiveMigration()
+            .build()
 
     @Provides
     fun provideSongDao(db: TuneDatabase): SongDao = db.songDao()
