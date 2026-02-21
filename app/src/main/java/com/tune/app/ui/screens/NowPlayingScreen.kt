@@ -1,10 +1,5 @@
 package com.tune.app.ui.screens
 
-import androidx.compose.animation.core.RepeatMode
-import androidx.compose.animation.core.animateFloat
-import androidx.compose.animation.core.infiniteRepeatable
-import androidx.compose.animation.core.rememberInfiniteTransition
-import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -18,12 +13,15 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ArrowBackIosNew
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.FavoriteBorder
+import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.Pause
+import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.filled.SkipNext
 import androidx.compose.material.icons.filled.SkipPrevious
-import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material.icons.filled.SwapHoriz
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -31,101 +29,125 @@ import androidx.compose.material3.Slider
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableFloatStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.tune.app.ui.components.BouncyIconButton
 import com.tune.app.ui.state.TuneViewModel
 import com.tune.app.ui.theme.CoralRed
-import com.tune.app.ui.theme.WarmOrange
+import com.tune.app.ui.theme.DeepTeal
+import com.tune.app.ui.theme.SeaGreen
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun NowPlayingScreen(vm: TuneViewModel) {
-    var progress by remember { mutableFloatStateOf(0.35f) }
     val currentSong by vm.currentSong.collectAsStateWithLifecycle()
     val favorites by vm.favorites.collectAsStateWithLifecycle()
-
-    val waves = rememberInfiniteTransition(label = "waves")
-    val waveScale by waves.animateFloat(
-        initialValue = 0.8f,
-        targetValue = 1.2f,
-        animationSpec = infiniteRepeatable(tween(600), RepeatMode.Reverse),
-        label = "waveScale"
-    )
+    val isPlaying by vm.isPlaying.collectAsStateWithLifecycle()
+    val positionMs by vm.positionMs.collectAsStateWithLifecycle()
+    val durationMs by vm.durationMs.collectAsStateWithLifecycle()
+    val progress = (positionMs.toFloat() / durationMs.toFloat()).coerceIn(0f, 1f)
 
     Column(
-        modifier = Modifier.fillMaxSize().padding(16.dp),
-        verticalArrangement = Arrangement.spacedBy(18.dp),
-        horizontalAlignment = Alignment.CenterHorizontally
+        modifier = Modifier
+            .fillMaxSize()
+            .background(DeepTeal)
+            .padding(18.dp),
+        verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
+        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
+            IconButton(modifier = Modifier.background(Color.White.copy(0.08f), CircleShape), onClick = {}) {
+                Icon(Icons.Default.ArrowBackIosNew, contentDescription = null, tint = Color.White)
+            }
+            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                Text("NOW PLAYING FROM", color = Color.White.copy(0.5f), fontWeight = FontWeight.SemiBold)
+                Text("Favorites Playlist", color = Color.White)
+            }
+            IconButton(modifier = Modifier.background(Color.White.copy(0.08f), CircleShape), onClick = {}) {
+                Icon(Icons.Default.MoreVert, contentDescription = null, tint = Color.White)
+            }
+        }
+
         Box(
             Modifier
                 .fillMaxWidth()
-                .height(320.dp)
-                .clip(RoundedCornerShape(24.dp))
-                .background(MaterialTheme.colorScheme.primary.copy(0.2f))
-        )
+                .height(360.dp)
+                .clip(RoundedCornerShape(40.dp))
+                .background(Color(0xFFF2F2F2)),
+            contentAlignment = Alignment.Center
+        ) {
+            Box(
+                Modifier
+                    .fillMaxWidth(0.78f)
+                    .height(250.dp)
+                    .clip(RoundedCornerShape(6.dp))
+                    .background(Brush.horizontalGradient(listOf(Color(0xFFEDE8DC), Color(0xFFE7E4D8))))
+            )
+        }
 
-        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.SpaceBetween, modifier = Modifier.fillMaxWidth()) {
-            Column(Modifier.weight(1f)) {
-                Text(currentSong?.title ?: "No song selected", style = MaterialTheme.typography.titleLarge)
-                Text(currentSong?.artist ?: "Pick a song from Library", style = MaterialTheme.typography.bodyLarge)
-            }
-            currentSong?.let { song ->
-                val fav = song.id in favorites
-                IconButton(onClick = { vm.toggleFavorite(song.id) }) {
-                    Icon(if (fav) Icons.Default.Favorite else Icons.Default.FavoriteBorder, contentDescription = "favorite", tint = if (fav) CoralRed else MaterialTheme.colorScheme.onBackground)
-                }
-            }
+        Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.fillMaxWidth()) {
+            Text(currentSong?.title ?: "Pick a song", color = Color(0xFFE9C46A), style = MaterialTheme.typography.headlineLarge)
+            Text(currentSong?.artist ?: "Unknown Artist", color = Color.White.copy(0.6f), style = MaterialTheme.typography.titleLarge)
         }
 
         Slider(
             value = progress,
-            onValueChange = { progress = it },
+            onValueChange = vm::seekToFraction,
             modifier = Modifier.fillMaxWidth(),
-            thumb = {
-                Box(
-                    Modifier
-                        .size(20.dp)
-                        .clip(CircleShape)
-                        .background(CoralRed)
-                )
-            },
+            thumb = { Box(Modifier.size(0.dp)) },
             track = {
                 Box(
                     Modifier
                         .fillMaxWidth()
                         .height(10.dp)
-                        .clip(RoundedCornerShape(12.dp))
-                        .background(Brush.horizontalGradient(listOf(WarmOrange, CoralRed)))
+                        .clip(RoundedCornerShape(100))
+                        .background(Color.White.copy(0.12f))
+                )
+                Box(
+                    Modifier
+                        .fillMaxWidth(progress)
+                        .height(10.dp)
+                        .clip(RoundedCornerShape(100))
+                        .background(CoralRed)
                 )
             }
         )
 
-        Row(horizontalArrangement = Arrangement.spacedBy(14.dp), verticalAlignment = Alignment.CenterVertically) {
-            BouncyIconButton(shape = RoundedCornerShape(100), onClick = {}) { Icon(Icons.Default.SkipPrevious, null) }
-            BouncyIconButton(shape = CircleShape, onClick = {}) { Icon(Icons.Default.Pause, null) }
-            BouncyIconButton(shape = RoundedCornerShape(100), onClick = {}) { Icon(Icons.Default.SkipNext, null) }
+        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+            Text(formatMs(positionMs), color = Color.White.copy(0.4f))
+            Text(formatMs(durationMs), color = Color.White.copy(0.4f))
         }
 
-        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            repeat(18) {
-                Box(
-                    Modifier
-                        .size(width = 6.dp, height = 20.dp)
-                        .scale(scaleX = 1f, scaleY = waveScale)
-                        .clip(RoundedCornerShape(6.dp))
-                        .background(MaterialTheme.colorScheme.primary)
-                )
+        Row(
+            Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceEvenly,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            IconButton(onClick = {}) { Icon(Icons.Default.SwapHoriz, contentDescription = null, tint = Color(0xFFD39A5D)) }
+            IconButton(onClick = vm::previousSong) { Icon(Icons.Default.SkipPrevious, contentDescription = null, tint = Color.White, modifier = Modifier.size(42.dp)) }
+            IconButton(
+                modifier = Modifier.size(100.dp).background(SeaGreen, CircleShape),
+                onClick = vm::togglePlayPause
+            ) {
+                Icon(if (isPlaying) Icons.Default.Pause else Icons.Default.PlayArrow, contentDescription = null, tint = Color.White, modifier = Modifier.size(52.dp))
             }
+            IconButton(onClick = vm::nextSong) { Icon(Icons.Default.SkipNext, contentDescription = null, tint = Color.White, modifier = Modifier.size(42.dp)) }
+            currentSong?.let { song ->
+                val fav = song.id in favorites
+                IconButton(onClick = { vm.toggleFavorite(song.id) }) {
+                    Icon(if (fav) Icons.Default.Favorite else Icons.Default.FavoriteBorder, contentDescription = "favorite", tint = if (fav) CoralRed else Color(0xFFD39A5D))
+                }
+            } ?: IconButton(onClick = {}) { Icon(Icons.Default.FavoriteBorder, null, tint = Color(0xFFD39A5D)) }
         }
     }
+}
+
+private fun formatMs(ms: Long): String {
+    val totalSec = (ms / 1000).coerceAtLeast(0)
+    val min = totalSec / 60
+    val sec = totalSec % 60
+    return "%d:%02d".format(min, sec)
 }

@@ -95,7 +95,7 @@ fun HomeScreen(
                     LazyRow(horizontalArrangement = Arrangement.spacedBy(12.dp), contentPadding = PaddingValues(top = 8.dp)) {
                         items(songs.take(6)) { song ->
                             Card(shape = RoundedCornerShape(20.dp), colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)) {
-                                Column(Modifier.padding(12.dp).clickable { vm.selectSong(song); onNowPlaying() }) {
+                                Column(Modifier.padding(12.dp).clickable { vm.playSong(song); onNowPlaying() }) {
                                     Box(Modifier.size(130.dp).background(MaterialTheme.colorScheme.primary.copy(0.2f), RoundedCornerShape(20.dp)))
                                     Text(song.title, maxLines = 1, overflow = TextOverflow.Ellipsis)
                                 }
@@ -119,7 +119,7 @@ fun HomeScreen(
                 item { Text("No songs found yet. Pull to refresh after granting permission.") }
             } else {
                 items(songs) { song ->
-                    Card(modifier = Modifier.fillMaxWidth().clickable { vm.selectSong(song); onNowPlaying() }, shape = RoundedCornerShape(20.dp)) {
+                    Card(modifier = Modifier.fillMaxWidth().clickable { vm.playSong(song); onNowPlaying() }, shape = RoundedCornerShape(20.dp)) {
                         Row(
                             modifier = Modifier.padding(12.dp),
                             verticalAlignment = Alignment.CenterVertically,
@@ -140,7 +140,7 @@ fun HomeScreen(
 
         FloatingActionButton(
             onClick = {
-                songs.firstOrNull()?.let { vm.selectSong(it); onNowPlaying() }
+                songs.firstOrNull()?.let { vm.playSong(it); onNowPlaying() }
             },
             modifier = Modifier.align(Alignment.BottomEnd).padding(16.dp),
             shape = CircleShape,

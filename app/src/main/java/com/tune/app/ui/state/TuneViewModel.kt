@@ -4,7 +4,9 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.tune.app.data.model.Song
 import com.tune.app.data.repo.LibraryRepository
+import com.tune.app.playback.PlaybackController
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -16,7 +18,8 @@ import javax.inject.Inject
 
 @HiltViewModel
 class TuneViewModel @Inject constructor(
-    private val repository: LibraryRepository
+    private val repository: LibraryRepository,
+    private val playback: PlaybackController
 ) : ViewModel() {
 
     private val query = MutableStateFlow("")
@@ -44,6 +47,18 @@ class TuneViewModel @Inject constructor(
     val favorites: StateFlow<Set<Long>> = favoriteSongIds
     val searchQuery: StateFlow<String> = query
     val currentSong: StateFlow<Song?> = nowPlayingSong
+    val isPlaying: StateFlow<Boolean> = playback.isPlaying
+    val positionMs: StateFlow<Long> = playback.positionMs
+    val durationMs: StateFlow<Long> = playback.durationMs
+
+    init {
+        viewModelScope.launch {
+            while (true) {
+                playback.tick()
+                delay(500)
+            }
+        }
+    }
 
     fun refreshLibrary() = viewModelScope.launch { repository.refreshLibrary() }
 
@@ -51,8 +66,30 @@ class TuneViewModel @Inject constructor(
         query.value = value
     }
 
-    fun selectSong(song: Song) {
+    fun playSong(song: Song) {
         nowPlayingSong.value = song
+        if (song.path.isNotBlank()) playback.playFromUri(song.path)
+    }
+
+    fun togglePlayPause() = playback.togglePlayPause()
+
+    fun nextSong() {
+        val list = songs.value
+        val current = nowPlayingSong.value ?: return
+        val index = list.indexOfFirst { it.id == current.id }
+        if (index >= 0 && list.isNotEmpty()) playSong(list[(index + 1) % list.size])
+    }
+
+    fun previousSong() {
+        val list = songs.value
+        val current = nowPlayingSong.value ?: return
+        val index = list.indexOfFirst { it.id == current.id }
+        if (index >= 0 && list.isNotEmpty()) playSong(list[(index - 1 + list.size) % list.size])
+    }
+
+    fun seekToFraction(progress: Float) {
+        val duration = durationMs.value
+        playback.seekTo((duration * progress).toLong())
     }
 
     fun toggleFavorite(songId: Long) {
