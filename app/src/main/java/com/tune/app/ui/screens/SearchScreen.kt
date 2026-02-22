@@ -36,6 +36,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil.compose.AsyncImage
@@ -251,8 +252,8 @@ private fun ResultRow(
     ) {
         AsyncImage(model = art, contentDescription = null, modifier = Modifier.size(56.dp).clip(CircleShape).background(Color.Black))
         Column(Modifier.fillMaxWidth(0.68f)) {
-            Text(title, color = Color.White)
-            Text(subtitle, color = Color(0xFFE9C46A))
+            Text(title, maxLines = 1, overflow = TextOverflow.Ellipsis, color = Color.White)
+            Text(subtitle, maxLines = 1, overflow = TextOverflow.Ellipsis, color = Color(0xFFE9C46A))
         }
         trailing()
     }

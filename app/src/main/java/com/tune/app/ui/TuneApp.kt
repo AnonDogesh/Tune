@@ -38,6 +38,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavDestination.Companion.hierarchy
@@ -97,8 +98,8 @@ fun TuneApp() {
                                 horizontalArrangement = Arrangement.SpaceBetween
                             ) {
                                 Column(Modifier.weight(1f)) {
-                                    Text(currentSong?.title.orEmpty(), color = androidx.compose.ui.graphics.Color.White)
-                                    Text("${currentSong?.artist} • NOW PLAYING", color = androidx.compose.ui.graphics.Color(0xFF2A9D8F))
+                                    Text(currentSong?.title.orEmpty(), maxLines = 1, overflow = TextOverflow.Ellipsis, color = androidx.compose.ui.graphics.Color.White)
+                                    Text("${currentSong?.artist} • NOW PLAYING", maxLines = 1, overflow = TextOverflow.Ellipsis, color = androidx.compose.ui.graphics.Color(0xFF2A9D8F))
                                 }
                                 Row(verticalAlignment = Alignment.CenterVertically) {
                                     IconButton(onClick = vm::previousSong) { Icon(Icons.Default.SkipPrevious, null, tint = androidx.compose.ui.graphics.Color.White) }

@@ -32,6 +32,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.tune.app.ui.state.TuneViewModel
 
@@ -64,8 +65,8 @@ fun PlaylistsScreen(vm: TuneViewModel) {
                     Card(shape = RoundedCornerShape(20.dp), modifier = Modifier.fillMaxWidth().clickable { vm.playSongFromPlaylist(selected, song) }) {
                         Row(Modifier.fillMaxWidth().padding(12.dp), verticalAlignment = Alignment.CenterVertically) {
                             Column(Modifier.weight(1f)) {
-                                Text(song.title)
-                                Text(song.artist, style = MaterialTheme.typography.bodyMedium)
+                                Text(song.title, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                                Text(song.artist, maxLines = 1, overflow = TextOverflow.Ellipsis, style = MaterialTheme.typography.bodyMedium)
                             }
                             Text(song.duration, style = MaterialTheme.typography.labelLarge)
                             TextButton(onClick = { vm.removeSongFromPlaylist(selected, song.id) }) {

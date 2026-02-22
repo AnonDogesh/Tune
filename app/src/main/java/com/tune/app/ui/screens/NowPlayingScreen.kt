@@ -43,6 +43,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil.compose.AsyncImage
@@ -113,8 +114,8 @@ fun NowPlayingScreen(vm: TuneViewModel) {
         item {
             Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxWidth()) {
                 Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.weight(1f)) {
-                    Text(currentSong?.title ?: "Pick a song", color = Color(0xFFE9C46A), style = MaterialTheme.typography.headlineLarge)
-                    Text(currentSong?.artist ?: "Unknown Artist", color = Color.White.copy(0.6f), style = MaterialTheme.typography.titleLarge)
+                    Text(currentSong?.title ?: "Pick a song", maxLines = 1, overflow = TextOverflow.Ellipsis, color = Color(0xFFE9C46A), style = MaterialTheme.typography.headlineLarge)
+                    Text(currentSong?.artist ?: "Unknown Artist", maxLines = 1, overflow = TextOverflow.Ellipsis, color = Color.White.copy(0.6f), style = MaterialTheme.typography.titleLarge)
                 }
                 currentSong?.let { song ->
                     val fav = song.id in favorites
@@ -150,14 +151,14 @@ fun NowPlayingScreen(vm: TuneViewModel) {
         item { Text("Up Next", color = Color.White.copy(0.8f), style = MaterialTheme.typography.titleLarge) }
         items(queueSongs) { song ->
             Row(
-                Modifier.fillMaxWidth().clip(RoundedCornerShape(16.dp)).background(Color.White.copy(0.06f)).padding(10.dp),
+                Modifier.fillMaxWidth().clip(RoundedCornerShape(16.dp)).background(Color.White.copy(0.06f)).clickable { vm.playFromQueue(song) }.padding(10.dp),
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(10.dp)
             ) {
                 AsyncImage(model = song.albumArtUri, contentDescription = null, modifier = Modifier.size(44.dp).clip(CircleShape).background(Color.Gray))
                 Column(Modifier.weight(1f)) {
-                    Text(song.title, color = Color.White)
-                    Text(song.artist, color = Color.White.copy(0.6f), style = MaterialTheme.typography.bodyMedium)
+                    Text(song.title, maxLines = 1, overflow = TextOverflow.Ellipsis, color = Color.White)
+                    Text(song.artist, maxLines = 1, overflow = TextOverflow.Ellipsis, color = Color.White.copy(0.6f), style = MaterialTheme.typography.bodyMedium)
                 }
                 Text(song.duration, color = Color.White.copy(0.6f))
             }
