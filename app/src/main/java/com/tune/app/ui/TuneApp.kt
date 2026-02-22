@@ -55,6 +55,9 @@ import com.tune.app.ui.screens.PlaylistsScreen
 import com.tune.app.ui.screens.SearchScreen
 import com.tune.app.ui.screens.SettingsScreen
 import com.tune.app.ui.screens.SplashScreen
+import com.tune.app.ui.screens.EqualizerScreen
+import com.tune.app.ui.screens.ScanMusicScreen
+import com.tune.app.ui.screens.ScanProgressScreen
 import com.tune.app.ui.state.TuneViewModel
 
 @Composable
@@ -152,7 +155,25 @@ fun TuneApp() {
             composable(Destination.Search.route) { SearchScreen(vm = vm, onNowPlaying = { navController.navigate(Destination.NowPlaying.route) }) }
             composable(Destination.Artist.route) { ArtistScreen() }
             composable(Destination.Album.route) { AlbumScreen() }
-            composable(Destination.Settings.route) { SettingsScreen() }
+            composable(Destination.Settings.route) {
+                SettingsScreen(
+                    onEqualizer = { navController.navigate(Destination.SettingsEqualizer.route) },
+                    onScanMusic = { navController.navigate(Destination.SettingsScanMusic.route) },
+                    onScanProgress = { navController.navigate(Destination.SettingsScanProgress.route) }
+                )
+            }
+            composable(Destination.SettingsEqualizer.route) {
+                EqualizerScreen(onBack = { navController.popBackStack() })
+            }
+            composable(Destination.SettingsScanMusic.route) {
+                ScanMusicScreen(
+                    onBack = { navController.popBackStack() },
+                    onStartScan = { navController.navigate(Destination.SettingsScanProgress.route) }
+                )
+            }
+            composable(Destination.SettingsScanProgress.route) {
+                ScanProgressScreen(onStop = { navController.popBackStack() })
+            }
         }
     }
 }
