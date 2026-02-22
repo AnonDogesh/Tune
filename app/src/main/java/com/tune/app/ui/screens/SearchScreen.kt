@@ -21,6 +21,7 @@ import androidx.compose.material.icons.filled.ChevronRight
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.AssistChip
+import androidx.compose.material3.AssistChipDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -101,7 +102,14 @@ fun SearchScreen(vm: TuneViewModel, onNowPlaying: () -> Unit) {
             Text("RECENT SEARCHES", color = Color(0xFF2A9D8F), style = MaterialTheme.typography.titleMedium)
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 recent.forEach { item ->
-                    AssistChip(onClick = { vm.setSearchQuery(item) }, label = { Text(item) })
+                    AssistChip(
+                        onClick = { vm.setSearchQuery(item) },
+                        label = { Text(item, color = Color.White) },
+                        colors = AssistChipDefaults.assistChipColors(
+                            containerColor = Color(0xFF1F4E57),
+                            labelColor = Color.White
+                        )
+                    )
                 }
             }
 

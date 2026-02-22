@@ -45,6 +45,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
@@ -70,6 +71,16 @@ fun HomeScreen(
     val launcher = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { ok ->
         if (ok) vm.refreshLibrary()
     }
+    val libraryQuotes = remember {
+        listOf(
+            "For the love of music.",
+            "Music is a treat to the ears.",
+            "Let every beat tell a story.",
+            "Keep calm and press play.",
+            "Find your rhythm, every day."
+        )
+    }
+    val dailyQuote = remember { libraryQuotes.random() }
 
     LaunchedEffect(granted) {
         if (granted) vm.refreshLibrary() else launcher.launch(permission)
@@ -81,7 +92,17 @@ fun HomeScreen(
             contentPadding = PaddingValues(16.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-            item { Text("Library", style = MaterialTheme.typography.headlineLarge, color = MaterialTheme.colorScheme.onPrimary) }
+            item {
+                Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                    Text("Library", style = MaterialTheme.typography.headlineLarge, color = MaterialTheme.colorScheme.onPrimary)
+                    Text(
+                        dailyQuote,
+                        style = MaterialTheme.typography.bodyMedium,
+                        fontStyle = FontStyle.Italic,
+                        color = MaterialTheme.colorScheme.secondary
+                    )
+                }
+            }
             item {
                 OutlinedTextField(value = "", onValueChange = {}, enabled = false, modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(50), placeholder = { Text("Search your library...") })
             }
@@ -103,11 +124,11 @@ fun HomeScreen(
                 item {
                     LazyRow(horizontalArrangement = Arrangement.spacedBy(12.dp), contentPadding = PaddingValues(top = 8.dp)) {
                         items(recentSongs.take(10)) { song ->
-                            Card(shape = RoundedCornerShape(26.dp), colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)) {
+                            Card(modifier = Modifier.size(width = 184.dp, height = 228.dp), shape = RoundedCornerShape(26.dp), colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)) {
                                 Column(Modifier.padding(12.dp).clickable { vm.playSongFromLibrary(song); onNowPlaying() }) {
                                     AsyncImage(model = song.albumArtUri, contentDescription = null, modifier = Modifier.size(160.dp).background(MaterialTheme.colorScheme.primary.copy(0.2f), RoundedCornerShape(22.dp)))
-                                    Text(song.title, maxLines = 1, overflow = TextOverflow.Ellipsis)
-                                    Text(song.artist, maxLines = 1, overflow = TextOverflow.Ellipsis, style = MaterialTheme.typography.bodyMedium)
+                                    Text(song.title, modifier = Modifier.fillMaxWidth(), maxLines = 1, overflow = TextOverflow.Ellipsis)
+                                    Text(song.artist, modifier = Modifier.fillMaxWidth(), maxLines = 1, overflow = TextOverflow.Ellipsis, style = MaterialTheme.typography.bodyMedium)
                                 }
                             }
                         }

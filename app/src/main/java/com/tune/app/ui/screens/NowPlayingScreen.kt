@@ -54,7 +54,7 @@ import com.tune.app.ui.theme.DeepTeal
 import com.tune.app.ui.theme.SeaGreen
 
 @Composable
-fun NowPlayingScreen(vm: TuneViewModel) {
+fun NowPlayingScreen(vm: TuneViewModel, onBack: () -> Unit) {
     val currentSong by vm.currentSong.collectAsStateWithLifecycle()
     val favorites by vm.favorites.collectAsStateWithLifecycle()
     val isPlaying by vm.isPlaying.collectAsStateWithLifecycle()
@@ -75,7 +75,7 @@ fun NowPlayingScreen(vm: TuneViewModel) {
     ) {
         item {
             Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
-                IconButton(modifier = Modifier.background(Color.White.copy(0.08f), CircleShape), onClick = {}) {
+                IconButton(modifier = Modifier.background(Color.White.copy(0.08f), CircleShape), onClick = onBack) {
                     Icon(Icons.Default.ArrowBackIosNew, contentDescription = null, tint = Color.White)
                 }
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
