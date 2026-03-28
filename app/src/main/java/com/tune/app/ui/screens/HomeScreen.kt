@@ -7,6 +7,7 @@ import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -15,6 +16,7 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
@@ -27,7 +29,6 @@ import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.FloatingActionButton
@@ -44,6 +45,13 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.drawWithContent
+import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.style.TextOverflow
@@ -52,7 +60,11 @@ import androidx.core.content.ContextCompat
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil.compose.AsyncImage
 import com.tune.app.ui.state.TuneViewModel
-import com.tune.app.ui.theme.DeepTeal
+import com.tune.app.ui.theme.CharcoalText
+import com.tune.app.ui.theme.MutedGreyText
+import com.tune.app.ui.theme.OffWhiteBackground
+import com.tune.app.ui.theme.OliveAccent
+import com.tune.app.ui.theme.VioletAccent
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
@@ -86,7 +98,7 @@ fun HomeScreen(
         if (granted) vm.refreshLibrary() else launcher.launch(permission)
     }
 
-    Box(Modifier.fillMaxSize().background(DeepTeal)) {
+    Box(Modifier.fillMaxSize().background(OffWhiteBackground)) {
         LazyColumn(
             modifier = Modifier.fillMaxSize(),
             contentPadding = PaddingValues(16.dp),
@@ -94,25 +106,34 @@ fun HomeScreen(
         ) {
             item {
                 Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                    Text("Library", style = MaterialTheme.typography.headlineLarge, color = MaterialTheme.colorScheme.onPrimary)
+                    Text("Library", style = MaterialTheme.typography.headlineLarge, color = CharcoalText)
                     Text(
                         dailyQuote,
                         style = MaterialTheme.typography.bodyMedium,
                         fontStyle = FontStyle.Italic,
-                        color = MaterialTheme.colorScheme.secondary
+                        color = VioletAccent
                     )
                 }
             }
             item {
-                OutlinedTextField(value = "", onValueChange = {}, enabled = false, modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(50), placeholder = { Text("Search your library...") })
+                OutlinedTextField(
+                    value = "",
+                    onValueChange = {},
+                    enabled = false,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .glassmorphic(shape = RoundedCornerShape(50), alpha = 0.54f),
+                    shape = RoundedCornerShape(50),
+                    placeholder = { Text("Search your library...", color = MutedGreyText) }
+                )
             }
 
             if (!granted) {
                 item {
-                    Card(shape = RoundedCornerShape(20.dp)) {
+                    Card(shape = RoundedCornerShape(20.dp), modifier = Modifier.glassmorphic(shape = RoundedCornerShape(20.dp), alpha = 0.58f)) {
                         Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                            Text("Audio permission required", style = MaterialTheme.typography.titleLarge)
-                            Text("Allow audio access to scan and play your offline songs.")
+                            Text("Audio permission required", style = MaterialTheme.typography.titleLarge, color = CharcoalText)
+                            Text("Allow audio access to scan and play your offline songs.", color = MutedGreyText)
                             Button(onClick = { launcher.launch(permission) }) { Text("Grant permission") }
                         }
                     }
@@ -120,15 +141,34 @@ fun HomeScreen(
             }
 
             if (recentSongs.isNotEmpty()) {
-                item { Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) { Text("Recent", style = MaterialTheme.typography.titleLarge, color = MaterialTheme.colorScheme.secondary); Text("${recentSongs.size}", color = MaterialTheme.colorScheme.primary) } }
+                item {
+                    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                        Text("Recent", style = MaterialTheme.typography.titleLarge, color = CharcoalText)
+                        Text("${recentSongs.size}", color = VioletAccent)
+                    }
+                }
                 item {
                     LazyRow(horizontalArrangement = Arrangement.spacedBy(12.dp), contentPadding = PaddingValues(top = 8.dp)) {
                         items(recentSongs.take(10)) { song ->
-                            Card(modifier = Modifier.size(width = 184.dp, height = 228.dp), shape = RoundedCornerShape(26.dp), colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)) {
-                                Column(Modifier.padding(12.dp).clickable { vm.playSongFromLibrary(song); onNowPlaying() }) {
-                                    AsyncImage(model = song.albumArtUri, contentDescription = null, modifier = Modifier.size(160.dp).background(MaterialTheme.colorScheme.primary.copy(0.2f), RoundedCornerShape(22.dp)))
-                                    Text(song.title, modifier = Modifier.fillMaxWidth(), maxLines = 1, overflow = TextOverflow.Ellipsis)
-                                    Text(song.artist, modifier = Modifier.fillMaxWidth(), maxLines = 1, overflow = TextOverflow.Ellipsis, style = MaterialTheme.typography.bodyMedium)
+                            val tileShape = RoundedCornerShape(28.dp)
+                            Card(
+                                modifier = Modifier
+                                    .size(width = 184.dp, height = 228.dp)
+                                    .glassmorphic(shape = tileShape, alpha = 0.48f, shadowAlpha = 0.07f)
+                                    .clickable { vm.playSongFromLibrary(song); onNowPlaying() },
+                                shape = tileShape
+                            ) {
+                                Column(Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                                    AsyncImage(
+                                        model = song.albumArtUri,
+                                        contentDescription = null,
+                                        modifier = Modifier
+                                            .size(160.dp)
+                                            .background(Color.White.copy(alpha = 0.22f), RoundedCornerShape(22.dp))
+                                            .border(1.dp, Color.White.copy(alpha = 0.65f), RoundedCornerShape(22.dp))
+                                    )
+                                    Text(song.title, modifier = Modifier.fillMaxWidth(), maxLines = 1, overflow = TextOverflow.Ellipsis, color = CharcoalText)
+                                    Text(song.artist, modifier = Modifier.fillMaxWidth(), maxLines = 1, overflow = TextOverflow.Ellipsis, style = MaterialTheme.typography.bodyMedium, color = VioletAccent)
                                 }
                             }
                         }
@@ -136,24 +176,45 @@ fun HomeScreen(
                 }
             }
 
-            item { Text("All Tracks", style = MaterialTheme.typography.titleLarge, color = MaterialTheme.colorScheme.secondary) }
+            item { Text("All Tracks", style = MaterialTheme.typography.titleLarge, color = CharcoalText) }
 
             if (songs.isEmpty()) {
-                item { Text("No songs found yet. Grant permission and refresh.", color = MaterialTheme.colorScheme.onPrimary) }
+                item { Text("No songs found yet. Grant permission and refresh.", color = MutedGreyText) }
             } else {
                 items(songs) { song ->
                     var expanded by remember(song.id) { mutableStateOf(false) }
-                    Card(modifier = Modifier.fillMaxWidth().clickable { vm.playSongFromLibrary(song); onNowPlaying() }, shape = RoundedCornerShape(28.dp), colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface.copy(alpha = 0.15f))) {
-                        Row(modifier = Modifier.padding(12.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                            AsyncImage(model = song.albumArtUri, contentDescription = null, modifier = Modifier.size(56.dp).background(MaterialTheme.colorScheme.secondary.copy(0.25f), CircleShape))
-                            Column(Modifier.weight(1f)) {
-                                Text(song.title, maxLines = 1, overflow = TextOverflow.Ellipsis, color = MaterialTheme.colorScheme.onPrimary)
-                                Text(song.artist, maxLines = 1, overflow = TextOverflow.Ellipsis, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.secondary)
+                    val rowShape = RoundedCornerShape(28.dp)
+                    Card(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .glassmorphic(shape = rowShape, alpha = 0.32f, shadowAlpha = 0.05f)
+                            .clickable { vm.playSongFromLibrary(song); onNowPlaying() },
+                        shape = rowShape
+                    ) {
+                        Row(
+                            modifier = Modifier.padding(12.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(12.dp)
+                        ) {
+                            if (song.albumArtUri.isBlank()) {
+                                ClayArtworkPlaceholder()
+                            } else {
+                                AsyncImage(
+                                    model = song.albumArtUri,
+                                    contentDescription = null,
+                                    modifier = Modifier
+                                        .size(56.dp)
+                                        .clip(CircleShape)
+                                )
                             }
-                            Text(song.duration, style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.onPrimary.copy(0.7f))
+                            Column(Modifier.weight(1f)) {
+                                Text(song.title, maxLines = 1, overflow = TextOverflow.Ellipsis, color = CharcoalText)
+                                Text(song.artist, maxLines = 1, overflow = TextOverflow.Ellipsis, style = MaterialTheme.typography.bodyMedium, color = MutedGreyText)
+                            }
+                            Text(song.duration, style = MaterialTheme.typography.labelLarge, color = MutedGreyText)
                             Box {
                                 IconButton(onClick = { expanded = true }) {
-                                    Icon(Icons.Default.MoreVert, contentDescription = null, tint = MaterialTheme.colorScheme.onPrimary.copy(0.7f))
+                                    Icon(Icons.Default.MoreVert, contentDescription = null, tint = MutedGreyText)
                                 }
                                 DropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
                                     DropdownMenuItem(text = { Text("Remove from app library") }, onClick = {
@@ -170,9 +231,55 @@ fun HomeScreen(
 
         FloatingActionButton(
             onClick = { songs.firstOrNull()?.let { vm.playSongFromLibrary(it); onNowPlaying() } },
-            modifier = Modifier.align(Alignment.BottomEnd).padding(16.dp),
+            modifier = Modifier
+                .align(Alignment.BottomEnd)
+                .padding(16.dp)
+                .size(72.dp)
+                .claymorphic(shape = CircleShape, baseColor = OliveAccent),
             shape = CircleShape,
-            containerColor = MaterialTheme.colorScheme.tertiary
-        ) { Icon(Icons.Default.PlayArrow, contentDescription = "play") }
+            containerColor = Color.Transparent
+        ) { Icon(Icons.Default.PlayArrow, contentDescription = "play", tint = Color.White) }
     }
 }
+
+@Composable
+private fun ClayArtworkPlaceholder() {
+    Box(
+        modifier = Modifier
+            .size(56.dp)
+            .claymorphic(shape = CircleShape, baseColor = VioletAccent.copy(alpha = 0.36f))
+    )
+}
+
+private fun Modifier.glassmorphic(
+    shape: Shape,
+    alpha: Float = 0.45f,
+    borderAlpha: Float = 0.72f,
+    shadowAlpha: Float = 0.08f
+): Modifier = this
+    .shadow(elevation = 18.dp, shape = shape, ambientColor = Color.Black.copy(alpha = shadowAlpha), spotColor = Color.Black.copy(alpha = shadowAlpha))
+    .clip(shape)
+    .background(Color.White.copy(alpha = alpha), shape)
+    .border(1.dp, Color.White.copy(alpha = borderAlpha), shape)
+
+private fun Modifier.claymorphic(shape: Shape, baseColor: Color): Modifier = this
+    .shadow(elevation = 12.dp, shape = shape, ambientColor = Color.Black.copy(alpha = 0.16f), spotColor = Color.Black.copy(alpha = 0.16f))
+    .clip(shape)
+    .background(baseColor)
+    .drawWithContent {
+        drawContent()
+        drawRect(
+            brush = Brush.linearGradient(
+                colors = listOf(Color.White.copy(alpha = 0.28f), Color.Transparent),
+                start = Offset.Zero,
+                end = Offset(size.width * 0.5f, size.height * 0.5f)
+            )
+        )
+        drawRect(
+            brush = Brush.linearGradient(
+                colors = listOf(Color.Transparent, Color.Black.copy(alpha = 0.16f)),
+                start = Offset(size.width * 0.35f, size.height * 0.35f),
+                end = Offset(size.width, size.height)
+            )
+        )
+    }
