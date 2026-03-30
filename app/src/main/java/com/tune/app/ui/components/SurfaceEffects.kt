@@ -15,15 +15,23 @@ import androidx.compose.foundation.border
 
 fun Modifier.glassSurface(
     shape: Shape,
-    alpha: Float = 0.18f,
+    alpha: Float = 0.28f,
     borderAlpha: Float = 0.8f,
-    shadowAlpha: Float = 0.16f,
+    shadowAlpha: Float = 0.14f,
     elevation: Dp = 24.dp
 ): Modifier = this
     .shadow(elevation = elevation, shape = shape, ambientColor = Color.Black.copy(alpha = shadowAlpha), spotColor = Color.Black.copy(alpha = shadowAlpha))
     .clip(shape)
     .background(Color.White.copy(alpha = alpha), shape)
     .border(1.dp, Color.White.copy(alpha = borderAlpha), shape)
+    .drawWithContent {
+        drawContent()
+        drawRect(
+            brush = Brush.verticalGradient(
+                colors = listOf(Color.White.copy(alpha = 0.14f), Color.White.copy(alpha = 0.04f))
+            )
+        )
+    }
 
 fun Modifier.claySurface(shape: Shape, baseColor: Color): Modifier = this
     .shadow(elevation = 14.dp, shape = shape, ambientColor = Color.Black.copy(alpha = 0.18f), spotColor = Color.Black.copy(alpha = 0.18f))

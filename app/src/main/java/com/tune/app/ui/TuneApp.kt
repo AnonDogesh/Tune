@@ -33,7 +33,6 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.style.TextOverflow
@@ -86,20 +85,63 @@ fun TuneApp() {
             val backStackEntry by navController.currentBackStackEntryAsState()
             val current = backStackEntry?.destination
             if (current?.route != Destination.Splash.route) {
-                NavigationBar(containerColor = Color.Transparent, tonalElevation = 0.dp) {
-                    items.forEach { (dest, icon, label) ->
-                        NavigationBarItem(
-                            selected = current?.hierarchy?.any { it.route == dest.route } == true,
-                            onClick = {
-                                navController.navigate(dest.route) {
-                                    popUpTo(navController.graph.findStartDestination().id) { saveState = true }
-                                    launchSingleTop = true
-                                    restoreState = true
+                Column {
+                    if (current?.route != Destination.NowPlaying.route && currentSong != null) {
+                        val playerShape = RoundedCornerShape(24.dp)
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(horizontal = 12.dp, vertical = 6.dp)
+                                .glassSurface(shape = playerShape, alpha = 0.22f, shadowAlpha = 0.2f, elevation = 30.dp)
+                                .clickable { navController.navigate(Destination.NowPlaying.route) }
+                                .padding(12.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.SpaceBetween
+                        ) {
+                            Column(Modifier.weight(1f)) {
+                                Text(
+                                    currentSong?.title.orEmpty(),
+                                    maxLines = 1,
+                                    overflow = TextOverflow.Ellipsis,
+                                    color = OliveAccent
+                                )
+                                Text(
+                                    "NOW PLAYING",
+                                    maxLines = 1,
+                                    overflow = TextOverflow.Ellipsis,
+                                    color = VioletAccent
+                                )
+                            }
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                IconButton(onClick = vm::previousSong) { Icon(Icons.Default.SkipPrevious, null, tint = VioletAccent) }
+                                Box(
+                                    modifier = Modifier
+                                        .size(44.dp)
+                                        .claySurface(shape = CircleShape, baseColor = OliveAccent)
+                                        .clickable(onClick = vm::togglePlayPause),
+                                    contentAlignment = Alignment.Center
+                                ) {
+                                    Icon(if (isPlaying) Icons.Default.Pause else Icons.Default.PlayArrow, null, tint = Color.White, modifier = Modifier.size(24.dp))
                                 }
-                            },
-                            icon = { Icon(icon, contentDescription = label, tint = CharcoalText) },
-                            label = { Text(label, color = VioletAccent) }
-                        )
+                                IconButton(onClick = vm::nextSong) { Icon(Icons.Default.SkipNext, null, tint = VioletAccent) }
+                            }
+                        }
+                    }
+                    NavigationBar(containerColor = Color.Transparent, tonalElevation = 0.dp) {
+                        items.forEach { (dest, icon, label) ->
+                            NavigationBarItem(
+                                selected = current?.hierarchy?.any { it.route == dest.route } == true,
+                                onClick = {
+                                    navController.navigate(dest.route) {
+                                        popUpTo(navController.graph.findStartDestination().id) { saveState = true }
+                                        launchSingleTop = true
+                                        restoreState = true
+                                    }
+                                },
+                                icon = { Icon(icon, contentDescription = label, tint = CharcoalText) },
+                                label = { Text(label, color = VioletAccent) }
+                            )
+                        }
                     }
                 }
             }
@@ -151,50 +193,6 @@ fun TuneApp() {
                 }
             }
 
-            val backStackEntry by navController.currentBackStackEntryAsState()
-            val current = backStackEntry?.destination
-            if (current?.route != Destination.Splash.route && current?.route != Destination.NowPlaying.route && currentSong != null) {
-                val playerShape = RoundedCornerShape(24.dp)
-                Row(
-                    modifier = Modifier
-                        .align(Alignment.BottomCenter)
-                        .padding(horizontal = 12.dp, vertical = 88.dp)
-                        .fillMaxWidth()
-                        .glassSurface(shape = playerShape, alpha = 0.14f, shadowAlpha = 0.2f, elevation = 30.dp)
-                        .clickable { navController.navigate(Destination.NowPlaying.route) }
-                        .padding(12.dp),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.SpaceBetween
-                ) {
-                    Column(Modifier.weight(1f)) {
-                        Text(
-                            currentSong?.title.orEmpty(),
-                            maxLines = 1,
-                            overflow = TextOverflow.Ellipsis,
-                            color = OliveAccent
-                        )
-                        Text(
-                            "NOW PLAYING",
-                            maxLines = 1,
-                            overflow = TextOverflow.Ellipsis,
-                            color = VioletAccent
-                        )
-                    }
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        IconButton(onClick = vm::previousSong) { Icon(Icons.Default.SkipPrevious, null, tint = VioletAccent) }
-                        Box(
-                            modifier = Modifier
-                                .size(44.dp)
-                                .claySurface(shape = CircleShape, baseColor = OliveAccent)
-                                .clickable(onClick = vm::togglePlayPause),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            Icon(if (isPlaying) Icons.Default.Pause else Icons.Default.PlayArrow, null, tint = Color.White, modifier = Modifier.size(24.dp))
-                        }
-                        IconButton(onClick = vm::nextSong) { Icon(Icons.Default.SkipNext, null, tint = VioletAccent) }
-                    }
-                }
-            }
         }
     }
 }

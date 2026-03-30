@@ -141,7 +141,7 @@ fun HomeScreen(
                             Card(
                                 modifier = Modifier
                                     .size(width = 184.dp, height = 228.dp)
-                                    .glassSurface(shape = tileShape, alpha = 0.18f, shadowAlpha = 0.18f, elevation = 28.dp)
+                                    .glassSurface(shape = tileShape, alpha = 0.24f, shadowAlpha = 0.2f, elevation = 30.dp)
                                     .clickable { vm.playSongFromLibrary(song); onNowPlaying() },
                                 shape = tileShape,
                                 colors = CardDefaults.cardColors(containerColor = Color.Transparent)
@@ -151,7 +151,7 @@ fun HomeScreen(
                                         model = song.albumArtUri,
                                         contentDescription = null,
                                         modifier = Modifier
-                                            .size(160.dp)
+                                            .size(132.dp)
                                             .clip(CircleShape)
                                             .background(Color.White.copy(alpha = 0.22f), CircleShape)
                                             .border(1.dp, Color.White.copy(alpha = 0.65f), CircleShape)
@@ -176,7 +176,7 @@ fun HomeScreen(
                     Card(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .glassSurface(shape = rowShape, alpha = 0.12f, shadowAlpha = 0.14f, elevation = 20.dp)
+                            .glassSurface(shape = rowShape, alpha = 0.2f, shadowAlpha = 0.15f, elevation = 22.dp)
                             .clickable { vm.playSongFromLibrary(song); onNowPlaying() },
                         shape = rowShape,
                         colors = CardDefaults.cardColors(containerColor = Color.Transparent)
