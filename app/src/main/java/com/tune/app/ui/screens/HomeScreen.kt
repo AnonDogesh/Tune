@@ -16,7 +16,6 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
@@ -35,7 +34,6 @@ import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -115,18 +113,6 @@ fun HomeScreen(
                     )
                 }
             }
-            item {
-                OutlinedTextField(
-                    value = "",
-                    onValueChange = {},
-                    enabled = false,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .glassmorphic(shape = RoundedCornerShape(50), alpha = 0.54f),
-                    shape = RoundedCornerShape(50),
-                    placeholder = { Text("Search your library...", color = MutedGreyText) }
-                )
-            }
 
             if (!granted) {
                 item {
@@ -164,8 +150,9 @@ fun HomeScreen(
                                         contentDescription = null,
                                         modifier = Modifier
                                             .size(160.dp)
-                                            .background(Color.White.copy(alpha = 0.22f), RoundedCornerShape(22.dp))
-                                            .border(1.dp, Color.White.copy(alpha = 0.65f), RoundedCornerShape(22.dp))
+                                            .clip(CircleShape)
+                                            .background(Color.White.copy(alpha = 0.22f), CircleShape)
+                                            .border(1.dp, Color.White.copy(alpha = 0.65f), CircleShape)
                                     )
                                     Text(song.title, modifier = Modifier.fillMaxWidth(), maxLines = 1, overflow = TextOverflow.Ellipsis, color = CharcoalText)
                                     Text(song.artist, modifier = Modifier.fillMaxWidth(), maxLines = 1, overflow = TextOverflow.Ellipsis, style = MaterialTheme.typography.bodyMedium, color = VioletAccent)
@@ -187,7 +174,7 @@ fun HomeScreen(
                     Card(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .glassmorphic(shape = rowShape, alpha = 0.32f, shadowAlpha = 0.05f)
+                            .glassmorphic(shape = rowShape, alpha = 0.24f, shadowAlpha = 0.05f)
                             .clickable { vm.playSongFromLibrary(song); onNowPlaying() },
                         shape = rowShape
                     ) {
@@ -209,7 +196,7 @@ fun HomeScreen(
                             }
                             Column(Modifier.weight(1f)) {
                                 Text(song.title, maxLines = 1, overflow = TextOverflow.Ellipsis, color = CharcoalText)
-                                Text(song.artist, maxLines = 1, overflow = TextOverflow.Ellipsis, style = MaterialTheme.typography.bodyMedium, color = MutedGreyText)
+                                Text(song.artist, maxLines = 1, overflow = TextOverflow.Ellipsis, style = MaterialTheme.typography.bodyMedium, color = VioletAccent)
                             }
                             Text(song.duration, style = MaterialTheme.typography.labelLarge, color = MutedGreyText)
                             Box {

@@ -112,14 +112,14 @@ fun TuneApp() {
                                     color = OliveAccent
                                 )
                                 Text(
-                                    "${currentSong?.artist} • NOW PLAYING",
+                                    "NOW PLAYING",
                                     maxLines = 1,
                                     overflow = TextOverflow.Ellipsis,
                                     color = VioletAccent
                                 )
                             }
                             Row(verticalAlignment = Alignment.CenterVertically) {
-                                IconButton(onClick = vm::previousSong) { Icon(Icons.Default.SkipPrevious, null, tint = CharcoalText) }
+                                IconButton(onClick = vm::previousSong) { Icon(Icons.Default.SkipPrevious, null, tint = VioletAccent) }
                                 Box(
                                     modifier = Modifier
                                         .size(44.dp)
@@ -130,7 +130,7 @@ fun TuneApp() {
                                         Icon(if (isPlaying) Icons.Default.Pause else Icons.Default.PlayArrow, null, tint = Color.White)
                                     }
                                 }
-                                IconButton(onClick = vm::nextSong) { Icon(Icons.Default.SkipNext, null, tint = CharcoalText) }
+                                IconButton(onClick = vm::nextSong) { Icon(Icons.Default.SkipNext, null, tint = VioletAccent) }
                             }
                         }
                     }
