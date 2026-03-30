@@ -6,8 +6,6 @@ import androidx.compose.animation.core.spring
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideOutVertically
-import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -37,13 +35,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.drawWithContent
-import androidx.compose.ui.draw.shadow
-import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -67,6 +59,8 @@ import com.tune.app.ui.screens.SearchScreen
 import com.tune.app.ui.screens.SettingsScreen
 import com.tune.app.ui.screens.SplashScreen
 import com.tune.app.ui.state.TuneViewModel
+import com.tune.app.ui.components.claySurface
+import com.tune.app.ui.components.glassSurface
 import com.tune.app.ui.theme.CharcoalText
 import com.tune.app.ui.theme.OffWhiteBackground
 import com.tune.app.ui.theme.OliveAccent
@@ -92,146 +86,115 @@ fun TuneApp() {
             val backStackEntry by navController.currentBackStackEntryAsState()
             val current = backStackEntry?.destination
             if (current?.route != Destination.Splash.route) {
-                Column {
-                    if (current?.route != Destination.NowPlaying.route && currentSong != null) {
-                        val playerShape = RoundedCornerShape(24.dp)
-                        Row(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(horizontal = 12.dp, vertical = 8.dp)
-                                .glassmorphic(shape = playerShape, alpha = 0.18f, shadowAlpha = 0.14f, elevation = 28.dp)
-                                .clickable { navController.navigate(Destination.NowPlaying.route) }
-                                .padding(12.dp),
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.SpaceBetween
-                        ) {
-                            Column(Modifier.weight(1f)) {
-                                Text(
-                                    currentSong?.title.orEmpty(),
-                                    maxLines = 1,
-                                    overflow = TextOverflow.Ellipsis,
-                                    color = OliveAccent
-                                )
-                                Text(
-                                    "NOW PLAYING",
-                                    maxLines = 1,
-                                    overflow = TextOverflow.Ellipsis,
-                                    color = VioletAccent
-                                )
-                            }
-                            Row(verticalAlignment = Alignment.CenterVertically) {
-                                IconButton(onClick = vm::previousSong) { Icon(Icons.Default.SkipPrevious, null, tint = VioletAccent) }
-                                Box(
-                                    modifier = Modifier
-                                        .size(44.dp)
-                                        .claymorphic(shape = CircleShape, baseColor = OliveAccent)
-                                        .clickable(onClick = vm::togglePlayPause),
-                                    contentAlignment = Alignment.Center
-                                ) {
-                                    Icon(if (isPlaying) Icons.Default.Pause else Icons.Default.PlayArrow, null, tint = Color.White, modifier = Modifier.size(24.dp))
+                NavigationBar(containerColor = Color.Transparent, tonalElevation = 0.dp) {
+                    items.forEach { (dest, icon, label) ->
+                        NavigationBarItem(
+                            selected = current?.hierarchy?.any { it.route == dest.route } == true,
+                            onClick = {
+                                navController.navigate(dest.route) {
+                                    popUpTo(navController.graph.findStartDestination().id) { saveState = true }
+                                    launchSingleTop = true
+                                    restoreState = true
                                 }
-                                IconButton(onClick = vm::nextSong) { Icon(Icons.Default.SkipNext, null, tint = VioletAccent) }
-                            }
-                        }
-                    }
-                    NavigationBar(containerColor = Color.Transparent, tonalElevation = 0.dp) {
-                        items.forEach { (dest, icon, label) ->
-                            NavigationBarItem(
-                                selected = current?.hierarchy?.any { it.route == dest.route } == true,
-                                onClick = {
-                                    navController.navigate(dest.route) {
-                                        popUpTo(navController.graph.findStartDestination().id) { saveState = true }
-                                        launchSingleTop = true
-                                        restoreState = true
-                                    }
-                                },
-                                icon = { Icon(icon, contentDescription = label, tint = CharcoalText) },
-                                label = { Text(label, color = VioletAccent) }
-                            )
-                        }
+                            },
+                            icon = { Icon(icon, contentDescription = label, tint = CharcoalText) },
+                            label = { Text(label, color = VioletAccent) }
+                        )
                     }
                 }
             }
         }
     ) { innerPadding ->
-        NavHost(
-            navController = navController,
-            startDestination = Destination.Splash.route,
-            modifier = Modifier.padding(innerPadding)
-        ) {
-            composable(Destination.Splash.route) {
-                SplashScreen { navController.navigate(Destination.Home.route) { popUpTo(0) } }
-            }
-            composable(
-                Destination.Home.route,
-                enterTransition = {
-                    slideIntoContainer(
-                        AnimatedContentTransitionScope.SlideDirection.Up,
-                        spring(stiffness = Spring.StiffnessMediumLow)
-                    ) + fadeIn()
-                },
-                exitTransition = { fadeOut() + slideOutVertically() }
+        Box(Modifier.padding(innerPadding)) {
+            NavHost(
+                navController = navController,
+                startDestination = Destination.Splash.route
             ) {
-                HomeScreen(vm = vm, onNowPlaying = { navController.navigate(Destination.NowPlaying.route) }, onArtist = {}, onAlbum = {})
+                composable(Destination.Splash.route) {
+                    SplashScreen { navController.navigate(Destination.Home.route) { popUpTo(0) } }
+                }
+                composable(
+                    Destination.Home.route,
+                    enterTransition = {
+                        slideIntoContainer(
+                            AnimatedContentTransitionScope.SlideDirection.Up,
+                            spring(stiffness = Spring.StiffnessMediumLow)
+                        ) + fadeIn()
+                    },
+                    exitTransition = { fadeOut() + slideOutVertically() }
+                ) {
+                    HomeScreen(vm = vm, onNowPlaying = { navController.navigate(Destination.NowPlaying.route) }, onArtist = {}, onAlbum = {})
+                }
+                composable(Destination.NowPlaying.route) { NowPlayingScreen(vm = vm, onBack = { navController.popBackStack() }) }
+                composable(Destination.Playlists.route) { PlaylistsScreen(vm = vm) }
+                composable(Destination.Search.route) { SearchScreen(vm = vm, onNowPlaying = { navController.navigate(Destination.NowPlaying.route) }) }
+                composable(Destination.Artist.route) { ArtistScreen() }
+                composable(Destination.Album.route) { AlbumScreen() }
+                composable(Destination.Settings.route) {
+                    SettingsScreen(
+                        onEqualizer = { navController.navigate(Destination.SettingsEqualizer.route) },
+                        onScanMusic = { navController.navigate(Destination.SettingsScanMusic.route) },
+                        onScanProgress = { navController.navigate(Destination.SettingsScanProgress.route) }
+                    )
+                }
+                composable(Destination.SettingsEqualizer.route) {
+                    EqualizerScreen(onBack = { navController.popBackStack() })
+                }
+                composable(Destination.SettingsScanMusic.route) {
+                    ScanMusicScreen(
+                        onBack = { navController.popBackStack() },
+                        onStartScan = { navController.navigate(Destination.SettingsScanProgress.route) }
+                    )
+                }
+                composable(Destination.SettingsScanProgress.route) {
+                    ScanProgressScreen(onStop = { navController.popBackStack() })
+                }
             }
-            composable(Destination.NowPlaying.route) { NowPlayingScreen(vm = vm, onBack = { navController.popBackStack() }) }
-            composable(Destination.Playlists.route) { PlaylistsScreen(vm = vm) }
-            composable(Destination.Search.route) { SearchScreen(vm = vm, onNowPlaying = { navController.navigate(Destination.NowPlaying.route) }) }
-            composable(Destination.Artist.route) { ArtistScreen() }
-            composable(Destination.Album.route) { AlbumScreen() }
-            composable(Destination.Settings.route) {
-                SettingsScreen(
-                    onEqualizer = { navController.navigate(Destination.SettingsEqualizer.route) },
-                    onScanMusic = { navController.navigate(Destination.SettingsScanMusic.route) },
-                    onScanProgress = { navController.navigate(Destination.SettingsScanProgress.route) }
-                )
-            }
-            composable(Destination.SettingsEqualizer.route) {
-                EqualizerScreen(onBack = { navController.popBackStack() })
-            }
-            composable(Destination.SettingsScanMusic.route) {
-                ScanMusicScreen(
-                    onBack = { navController.popBackStack() },
-                    onStartScan = { navController.navigate(Destination.SettingsScanProgress.route) }
-                )
-            }
-            composable(Destination.SettingsScanProgress.route) {
-                ScanProgressScreen(onStop = { navController.popBackStack() })
+
+            val backStackEntry by navController.currentBackStackEntryAsState()
+            val current = backStackEntry?.destination
+            if (current?.route != Destination.Splash.route && current?.route != Destination.NowPlaying.route && currentSong != null) {
+                val playerShape = RoundedCornerShape(24.dp)
+                Row(
+                    modifier = Modifier
+                        .align(Alignment.BottomCenter)
+                        .padding(horizontal = 12.dp, vertical = 88.dp)
+                        .fillMaxWidth()
+                        .glassSurface(shape = playerShape, alpha = 0.14f, shadowAlpha = 0.2f, elevation = 30.dp)
+                        .clickable { navController.navigate(Destination.NowPlaying.route) }
+                        .padding(12.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    Column(Modifier.weight(1f)) {
+                        Text(
+                            currentSong?.title.orEmpty(),
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis,
+                            color = OliveAccent
+                        )
+                        Text(
+                            "NOW PLAYING",
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis,
+                            color = VioletAccent
+                        )
+                    }
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        IconButton(onClick = vm::previousSong) { Icon(Icons.Default.SkipPrevious, null, tint = VioletAccent) }
+                        Box(
+                            modifier = Modifier
+                                .size(44.dp)
+                                .claySurface(shape = CircleShape, baseColor = OliveAccent)
+                                .clickable(onClick = vm::togglePlayPause),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Icon(if (isPlaying) Icons.Default.Pause else Icons.Default.PlayArrow, null, tint = Color.White, modifier = Modifier.size(24.dp))
+                        }
+                        IconButton(onClick = vm::nextSong) { Icon(Icons.Default.SkipNext, null, tint = VioletAccent) }
+                    }
+                }
             }
         }
     }
 }
-
-private fun Modifier.glassmorphic(
-    shape: Shape,
-    alpha: Float = 0.22f,
-    borderAlpha: Float = 0.72f,
-    shadowAlpha: Float = 0.1f,
-    elevation: androidx.compose.ui.unit.Dp = 20.dp
-): Modifier = this
-    .shadow(elevation = elevation, shape = shape, ambientColor = Color.Black.copy(alpha = shadowAlpha), spotColor = Color.Black.copy(alpha = shadowAlpha))
-    .clip(shape)
-    .background(Color.White.copy(alpha = alpha), shape)
-    .border(1.dp, Color.White.copy(alpha = borderAlpha), shape)
-
-private fun Modifier.claymorphic(shape: Shape, baseColor: Color): Modifier = this
-    .shadow(elevation = 12.dp, shape = shape, ambientColor = Color.Black.copy(alpha = 0.16f), spotColor = Color.Black.copy(alpha = 0.16f))
-    .clip(shape)
-    .background(baseColor)
-    .drawWithContent {
-        drawContent()
-        drawCircle(
-            brush = Brush.radialGradient(
-                colors = listOf(Color.White.copy(alpha = 0.30f), Color.Transparent),
-                center = Offset(size.width * 0.30f, size.height * 0.28f),
-                radius = size.minDimension * 0.65f
-            )
-        )
-        drawCircle(
-            brush = Brush.radialGradient(
-                colors = listOf(Color.Transparent, Color.Black.copy(alpha = 0.22f)),
-                center = Offset(size.width * 0.72f, size.height * 0.76f),
-                radius = size.minDimension * 0.75f
-            )
-        )
-    }

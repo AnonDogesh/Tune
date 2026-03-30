@@ -28,6 +28,7 @@ import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
@@ -43,12 +44,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.drawWithContent
-import androidx.compose.ui.draw.shadow
-import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.style.TextOverflow
@@ -57,6 +53,8 @@ import androidx.core.content.ContextCompat
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil.compose.AsyncImage
 import com.tune.app.ui.state.TuneViewModel
+import com.tune.app.ui.components.claySurface
+import com.tune.app.ui.components.glassSurface
 import com.tune.app.ui.theme.CharcoalText
 import com.tune.app.ui.theme.MutedGreyText
 import com.tune.app.ui.theme.OffWhiteBackground
@@ -115,7 +113,11 @@ fun HomeScreen(
 
             if (!granted) {
                 item {
-                    Card(shape = RoundedCornerShape(20.dp), modifier = Modifier.glassmorphic(shape = RoundedCornerShape(20.dp), alpha = 0.58f)) {
+                    Card(
+                        shape = RoundedCornerShape(20.dp),
+                        modifier = Modifier.glassSurface(shape = RoundedCornerShape(20.dp), alpha = 0.2f, elevation = 20.dp),
+                        colors = CardDefaults.cardColors(containerColor = Color.Transparent)
+                    ) {
                         Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
                             Text("Audio permission required", style = MaterialTheme.typography.titleLarge, color = CharcoalText)
                             Text("Allow audio access to scan and play your offline songs.", color = MutedGreyText)
@@ -139,9 +141,10 @@ fun HomeScreen(
                             Card(
                                 modifier = Modifier
                                     .size(width = 184.dp, height = 228.dp)
-                                    .glassmorphic(shape = tileShape, alpha = 0.26f, shadowAlpha = 0.12f, elevation = 24.dp)
+                                    .glassSurface(shape = tileShape, alpha = 0.18f, shadowAlpha = 0.18f, elevation = 28.dp)
                                     .clickable { vm.playSongFromLibrary(song); onNowPlaying() },
-                                shape = tileShape
+                                shape = tileShape,
+                                colors = CardDefaults.cardColors(containerColor = Color.Transparent)
                             ) {
                                 Column(Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
                                     AsyncImage(
@@ -173,9 +176,10 @@ fun HomeScreen(
                     Card(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .glassmorphic(shape = rowShape, alpha = 0.16f, shadowAlpha = 0.07f, elevation = 18.dp)
+                            .glassSurface(shape = rowShape, alpha = 0.12f, shadowAlpha = 0.14f, elevation = 20.dp)
                             .clickable { vm.playSongFromLibrary(song); onNowPlaying() },
-                        shape = rowShape
+                        shape = rowShape,
+                        colors = CardDefaults.cardColors(containerColor = Color.Transparent)
                     ) {
                         Row(
                             modifier = Modifier.padding(12.dp),
@@ -220,7 +224,7 @@ fun HomeScreen(
                 .align(Alignment.BottomEnd)
                 .padding(16.dp)
                 .size(72.dp)
-                .claymorphic(shape = CircleShape, baseColor = OliveAccent)
+                .claySurface(shape = CircleShape, baseColor = OliveAccent)
                 .clickable { songs.firstOrNull()?.let { vm.playSongFromLibrary(it); onNowPlaying() } },
             contentAlignment = Alignment.Center
         ) {
@@ -234,40 +238,6 @@ private fun ClayArtworkPlaceholder() {
     Box(
         modifier = Modifier
             .size(56.dp)
-            .claymorphic(shape = CircleShape, baseColor = VioletAccent.copy(alpha = 0.36f))
+            .claySurface(shape = CircleShape, baseColor = VioletAccent.copy(alpha = 0.32f))
     )
 }
-
-private fun Modifier.glassmorphic(
-    shape: Shape,
-    alpha: Float = 0.22f,
-    borderAlpha: Float = 0.72f,
-    shadowAlpha: Float = 0.08f,
-    elevation: androidx.compose.ui.unit.Dp = 18.dp
-): Modifier = this
-    .shadow(elevation = elevation, shape = shape, ambientColor = Color.Black.copy(alpha = shadowAlpha), spotColor = Color.Black.copy(alpha = shadowAlpha))
-    .clip(shape)
-    .background(Color.White.copy(alpha = alpha), shape)
-    .border(1.dp, Color.White.copy(alpha = borderAlpha), shape)
-
-private fun Modifier.claymorphic(shape: Shape, baseColor: Color): Modifier = this
-    .shadow(elevation = 12.dp, shape = shape, ambientColor = Color.Black.copy(alpha = 0.16f), spotColor = Color.Black.copy(alpha = 0.16f))
-    .clip(shape)
-    .background(baseColor)
-    .drawWithContent {
-        drawContent()
-        drawCircle(
-            brush = Brush.radialGradient(
-                colors = listOf(Color.White.copy(alpha = 0.30f), Color.Transparent),
-                center = Offset(size.width * 0.30f, size.height * 0.28f),
-                radius = size.minDimension * 0.65f
-            )
-        )
-        drawCircle(
-            brush = Brush.radialGradient(
-                colors = listOf(Color.Transparent, Color.Black.copy(alpha = 0.22f)),
-                center = Offset(size.width * 0.72f, size.height * 0.76f),
-                radius = size.minDimension * 0.75f
-            )
-        )
-    }
