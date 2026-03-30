@@ -87,6 +87,7 @@ fun TuneApp() {
     )
 
     Scaffold(
+        containerColor = OffWhiteBackground,
         bottomBar = {
             val backStackEntry by navController.currentBackStackEntryAsState()
             val current = backStackEntry?.destination
@@ -98,7 +99,7 @@ fun TuneApp() {
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .padding(horizontal = 12.dp, vertical = 8.dp)
-                                .glassmorphic(shape = playerShape, alpha = 0.56f, shadowAlpha = 0.12f)
+                                .glassmorphic(shape = playerShape, alpha = 0.18f, shadowAlpha = 0.14f, elevation = 28.dp)
                                 .clickable { navController.navigate(Destination.NowPlaying.route) }
                                 .padding(12.dp),
                             verticalAlignment = Alignment.CenterVertically,
@@ -123,18 +124,17 @@ fun TuneApp() {
                                 Box(
                                     modifier = Modifier
                                         .size(44.dp)
-                                        .claymorphic(shape = CircleShape, baseColor = OliveAccent),
+                                        .claymorphic(shape = CircleShape, baseColor = OliveAccent)
+                                        .clickable(onClick = vm::togglePlayPause),
                                     contentAlignment = Alignment.Center
                                 ) {
-                                    IconButton(onClick = vm::togglePlayPause) {
-                                        Icon(if (isPlaying) Icons.Default.Pause else Icons.Default.PlayArrow, null, tint = Color.White)
-                                    }
+                                    Icon(if (isPlaying) Icons.Default.Pause else Icons.Default.PlayArrow, null, tint = Color.White, modifier = Modifier.size(24.dp))
                                 }
                                 IconButton(onClick = vm::nextSong) { Icon(Icons.Default.SkipNext, null, tint = VioletAccent) }
                             }
                         }
                     }
-                    NavigationBar(containerColor = OffWhiteBackground) {
+                    NavigationBar(containerColor = Color.Transparent, tonalElevation = 0.dp) {
                         items.forEach { (dest, icon, label) ->
                             NavigationBarItem(
                                 selected = current?.hierarchy?.any { it.route == dest.route } == true,
@@ -204,11 +204,12 @@ fun TuneApp() {
 
 private fun Modifier.glassmorphic(
     shape: Shape,
-    alpha: Float = 0.45f,
+    alpha: Float = 0.22f,
     borderAlpha: Float = 0.72f,
-    shadowAlpha: Float = 0.1f
+    shadowAlpha: Float = 0.1f,
+    elevation: androidx.compose.ui.unit.Dp = 20.dp
 ): Modifier = this
-    .shadow(elevation = 20.dp, shape = shape, ambientColor = Color.Black.copy(alpha = shadowAlpha), spotColor = Color.Black.copy(alpha = shadowAlpha))
+    .shadow(elevation = elevation, shape = shape, ambientColor = Color.Black.copy(alpha = shadowAlpha), spotColor = Color.Black.copy(alpha = shadowAlpha))
     .clip(shape)
     .background(Color.White.copy(alpha = alpha), shape)
     .border(1.dp, Color.White.copy(alpha = borderAlpha), shape)
@@ -219,18 +220,18 @@ private fun Modifier.claymorphic(shape: Shape, baseColor: Color): Modifier = thi
     .background(baseColor)
     .drawWithContent {
         drawContent()
-        drawRect(
-            brush = Brush.linearGradient(
-                colors = listOf(Color.White.copy(alpha = 0.26f), Color.Transparent),
-                start = Offset.Zero,
-                end = Offset(size.width * 0.45f, size.height * 0.45f)
+        drawCircle(
+            brush = Brush.radialGradient(
+                colors = listOf(Color.White.copy(alpha = 0.30f), Color.Transparent),
+                center = Offset(size.width * 0.30f, size.height * 0.28f),
+                radius = size.minDimension * 0.65f
             )
         )
-        drawRect(
-            brush = Brush.linearGradient(
-                colors = listOf(Color.Transparent, Color.Black.copy(alpha = 0.18f)),
-                start = Offset(size.width * 0.4f, size.height * 0.4f),
-                end = Offset(size.width, size.height)
+        drawCircle(
+            brush = Brush.radialGradient(
+                colors = listOf(Color.Transparent, Color.Black.copy(alpha = 0.22f)),
+                center = Offset(size.width * 0.72f, size.height * 0.76f),
+                radius = size.minDimension * 0.75f
             )
         )
     }

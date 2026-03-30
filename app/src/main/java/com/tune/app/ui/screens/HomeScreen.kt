@@ -30,7 +30,6 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
-import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -140,7 +139,7 @@ fun HomeScreen(
                             Card(
                                 modifier = Modifier
                                     .size(width = 184.dp, height = 228.dp)
-                                    .glassmorphic(shape = tileShape, alpha = 0.48f, shadowAlpha = 0.07f)
+                                    .glassmorphic(shape = tileShape, alpha = 0.26f, shadowAlpha = 0.12f, elevation = 24.dp)
                                     .clickable { vm.playSongFromLibrary(song); onNowPlaying() },
                                 shape = tileShape
                             ) {
@@ -174,7 +173,7 @@ fun HomeScreen(
                     Card(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .glassmorphic(shape = rowShape, alpha = 0.24f, shadowAlpha = 0.05f)
+                            .glassmorphic(shape = rowShape, alpha = 0.16f, shadowAlpha = 0.07f, elevation = 18.dp)
                             .clickable { vm.playSongFromLibrary(song); onNowPlaying() },
                         shape = rowShape
                     ) {
@@ -216,16 +215,17 @@ fun HomeScreen(
             }
         }
 
-        FloatingActionButton(
-            onClick = { songs.firstOrNull()?.let { vm.playSongFromLibrary(it); onNowPlaying() } },
+        Box(
             modifier = Modifier
                 .align(Alignment.BottomEnd)
                 .padding(16.dp)
                 .size(72.dp)
-                .claymorphic(shape = CircleShape, baseColor = OliveAccent),
-            shape = CircleShape,
-            containerColor = Color.Transparent
-        ) { Icon(Icons.Default.PlayArrow, contentDescription = "play", tint = Color.White) }
+                .claymorphic(shape = CircleShape, baseColor = OliveAccent)
+                .clickable { songs.firstOrNull()?.let { vm.playSongFromLibrary(it); onNowPlaying() } },
+            contentAlignment = Alignment.Center
+        ) {
+            Icon(Icons.Default.PlayArrow, contentDescription = "play", tint = Color.White, modifier = Modifier.size(32.dp))
+        }
     }
 }
 
@@ -240,11 +240,12 @@ private fun ClayArtworkPlaceholder() {
 
 private fun Modifier.glassmorphic(
     shape: Shape,
-    alpha: Float = 0.45f,
+    alpha: Float = 0.22f,
     borderAlpha: Float = 0.72f,
-    shadowAlpha: Float = 0.08f
+    shadowAlpha: Float = 0.08f,
+    elevation: androidx.compose.ui.unit.Dp = 18.dp
 ): Modifier = this
-    .shadow(elevation = 18.dp, shape = shape, ambientColor = Color.Black.copy(alpha = shadowAlpha), spotColor = Color.Black.copy(alpha = shadowAlpha))
+    .shadow(elevation = elevation, shape = shape, ambientColor = Color.Black.copy(alpha = shadowAlpha), spotColor = Color.Black.copy(alpha = shadowAlpha))
     .clip(shape)
     .background(Color.White.copy(alpha = alpha), shape)
     .border(1.dp, Color.White.copy(alpha = borderAlpha), shape)
@@ -255,18 +256,18 @@ private fun Modifier.claymorphic(shape: Shape, baseColor: Color): Modifier = thi
     .background(baseColor)
     .drawWithContent {
         drawContent()
-        drawRect(
-            brush = Brush.linearGradient(
-                colors = listOf(Color.White.copy(alpha = 0.28f), Color.Transparent),
-                start = Offset.Zero,
-                end = Offset(size.width * 0.5f, size.height * 0.5f)
+        drawCircle(
+            brush = Brush.radialGradient(
+                colors = listOf(Color.White.copy(alpha = 0.30f), Color.Transparent),
+                center = Offset(size.width * 0.30f, size.height * 0.28f),
+                radius = size.minDimension * 0.65f
             )
         )
-        drawRect(
-            brush = Brush.linearGradient(
-                colors = listOf(Color.Transparent, Color.Black.copy(alpha = 0.16f)),
-                start = Offset(size.width * 0.35f, size.height * 0.35f),
-                end = Offset(size.width, size.height)
+        drawCircle(
+            brush = Brush.radialGradient(
+                colors = listOf(Color.Transparent, Color.Black.copy(alpha = 0.22f)),
+                center = Offset(size.width * 0.72f, size.height * 0.76f),
+                radius = size.minDimension * 0.75f
             )
         )
     }
