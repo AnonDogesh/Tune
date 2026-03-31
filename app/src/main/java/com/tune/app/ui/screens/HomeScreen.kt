@@ -16,6 +16,7 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
@@ -25,7 +26,10 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.MoreVert
+import androidx.compose.material.icons.filled.Pause
 import androidx.compose.material.icons.filled.PlayArrow
+import androidx.compose.material.icons.filled.SkipNext
+import androidx.compose.material.icons.filled.SkipPrevious
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -72,6 +76,8 @@ fun HomeScreen(
 ) {
     val songs by vm.songs.collectAsStateWithLifecycle()
     val recentSongs by vm.recentSongs.collectAsStateWithLifecycle()
+    val currentSong by vm.currentSong.collectAsStateWithLifecycle()
+    val isPlaying by vm.isPlaying.collectAsStateWithLifecycle()
     val context = LocalContext.current
     val permission = if (Build.VERSION.SDK_INT >= 33) Manifest.permission.READ_MEDIA_AUDIO else Manifest.permission.READ_EXTERNAL_STORAGE
     val granted = ContextCompat.checkSelfPermission(context, permission) == PackageManager.PERMISSION_GRANTED
@@ -97,7 +103,7 @@ fun HomeScreen(
     Box(Modifier.fillMaxSize().background(OffWhiteBackground)) {
         LazyColumn(
             modifier = Modifier.fillMaxSize(),
-            contentPadding = PaddingValues(16.dp),
+            contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 16.dp, bottom = 220.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
             item {
@@ -149,7 +155,9 @@ fun HomeScreen(
                                 colors = CardDefaults.cardColors(containerColor = Color.Transparent)
                             ) {
                                 GlassBox(
-                                    modifier = Modifier.fillMaxSize(),
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .height(228.dp),
                                     shape = tileShape,
                                     contentPadding = PaddingValues(12.dp)
                                 ) {
@@ -189,7 +197,7 @@ fun HomeScreen(
                         colors = CardDefaults.cardColors(containerColor = Color.Transparent)
                     ) {
                         GlassBox(
-                            modifier = Modifier.fillMaxSize(),
+                            modifier = Modifier.fillMaxWidth(),
                             shape = rowShape,
                             contentPadding = PaddingValues(12.dp)
                         ) {
@@ -242,6 +250,53 @@ fun HomeScreen(
             baseColor = OliveAccent
         ) {
             Icon(Icons.Default.PlayArrow, contentDescription = "play", tint = Color.White, modifier = Modifier.size(32.dp))
+        }
+
+        if (currentSong != null) {
+            GlassBox(
+                modifier = Modifier
+                    .align(Alignment.BottomCenter)
+                    .padding(horizontal = 16.dp, vertical = 96.dp)
+                    .fillMaxWidth()
+                    .height(82.dp)
+                    .clickable { onNowPlaying() },
+                shape = RoundedCornerShape(28.dp),
+                contentPadding = PaddingValues(horizontal = 12.dp, vertical = 10.dp)
+            ) {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    Column(Modifier.weight(1f)) {
+                        Text(
+                            currentSong?.title.orEmpty(),
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis,
+                            color = CharcoalText
+                        )
+                        Text(
+                            currentSong?.artist.orEmpty(),
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis,
+                            color = VioletAccent,
+                            style = MaterialTheme.typography.bodyMedium
+                        )
+                    }
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        IconButton(onClick = vm::previousSong) { Icon(Icons.Default.SkipPrevious, null, tint = VioletAccent) }
+                        ClayButton(
+                            onClick = vm::togglePlayPause,
+                            modifier = Modifier.size(42.dp),
+                            shape = CircleShape,
+                            baseColor = OliveAccent
+                        ) {
+                            Icon(if (isPlaying) Icons.Default.Pause else Icons.Default.PlayArrow, null, tint = Color.White)
+                        }
+                        IconButton(onClick = vm::nextSong) { Icon(Icons.Default.SkipNext, null, tint = VioletAccent) }
+                    }
+                }
+            }
         }
     }
 }
