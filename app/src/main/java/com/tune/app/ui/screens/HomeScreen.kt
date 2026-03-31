@@ -14,8 +14,10 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.matchParentSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
@@ -141,23 +143,29 @@ fun HomeScreen(
                             Card(
                                 modifier = Modifier
                                     .size(width = 184.dp, height = 228.dp)
-                                    .glassSurface(shape = tileShape, alpha = 0.24f, shadowAlpha = 0.2f, elevation = 30.dp)
                                     .clickable { vm.playSongFromLibrary(song); onNowPlaying() },
                                 shape = tileShape,
                                 colors = CardDefaults.cardColors(containerColor = Color.Transparent)
                             ) {
-                                Column(Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                                    AsyncImage(
-                                        model = song.albumArtUri,
-                                        contentDescription = null,
+                                Box {
+                                    Spacer(
                                         modifier = Modifier
-                                            .size(132.dp)
-                                            .clip(CircleShape)
-                                            .background(Color.White.copy(alpha = 0.22f), CircleShape)
-                                            .border(1.dp, Color.White.copy(alpha = 0.65f), CircleShape)
+                                            .matchParentSize()
+                                            .glassSurface(shape = tileShape, alpha = 0.15f, shadowAlpha = 0.2f, elevation = 30.dp)
                                     )
-                                    Text(song.title, modifier = Modifier.fillMaxWidth(), maxLines = 1, overflow = TextOverflow.Ellipsis, color = CharcoalText)
-                                    Text(song.artist, modifier = Modifier.fillMaxWidth(), maxLines = 1, overflow = TextOverflow.Ellipsis, style = MaterialTheme.typography.bodyMedium, color = VioletAccent)
+                                    Column(Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                                        AsyncImage(
+                                            model = song.albumArtUri,
+                                            contentDescription = null,
+                                            modifier = Modifier
+                                                .size(132.dp)
+                                                .clip(CircleShape)
+                                                .background(Color.White.copy(alpha = 0.22f), CircleShape)
+                                                .border(1.dp, Color.White.copy(alpha = 0.65f), CircleShape)
+                                        )
+                                        Text(song.title, modifier = Modifier.fillMaxWidth(), maxLines = 1, overflow = TextOverflow.Ellipsis, color = CharcoalText)
+                                        Text(song.artist, modifier = Modifier.fillMaxWidth(), maxLines = 1, overflow = TextOverflow.Ellipsis, style = MaterialTheme.typography.bodyMedium, color = VioletAccent)
+                                    }
                                 }
                             }
                         }
@@ -176,43 +184,49 @@ fun HomeScreen(
                     Card(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .glassSurface(shape = rowShape, alpha = 0.2f, shadowAlpha = 0.15f, elevation = 22.dp)
                             .clickable { vm.playSongFromLibrary(song); onNowPlaying() },
                         shape = rowShape,
                         colors = CardDefaults.cardColors(containerColor = Color.Transparent)
                     ) {
-                        Row(
-                            modifier = Modifier.padding(12.dp),
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.spacedBy(12.dp)
-                        ) {
-                            if (song.albumArtUri.isBlank()) {
-                                ClayArtworkPlaceholder()
-                            } else {
-                                AsyncImage(
-                                    model = song.albumArtUri,
-                                    contentDescription = null,
-                                    modifier = Modifier
-                                        .size(56.dp)
-                                        .clip(CircleShape)
-                                )
-                            }
-                            Column(Modifier.weight(1f)) {
-                                Text(song.title, maxLines = 1, overflow = TextOverflow.Ellipsis, color = CharcoalText)
-                                Text(song.artist, maxLines = 1, overflow = TextOverflow.Ellipsis, style = MaterialTheme.typography.bodyMedium, color = VioletAccent)
-                            }
-                            Text(song.duration, style = MaterialTheme.typography.labelLarge, color = MutedGreyText)
-                            Box {
-                                IconButton(onClick = { expanded = true }) {
-                                    Icon(Icons.Default.MoreVert, contentDescription = null, tint = MutedGreyText)
+                        Box {
+                            Spacer(
+                                modifier = Modifier
+                                    .matchParentSize()
+                                    .glassSurface(shape = rowShape, alpha = 0.15f, shadowAlpha = 0.15f, elevation = 22.dp)
+                            )
+                            Row(
+                                modifier = Modifier.padding(12.dp),
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.spacedBy(12.dp)
+                            ) {
+                                if (song.albumArtUri.isBlank()) {
+                                    ClayArtworkPlaceholder()
+                                } else {
+                                    AsyncImage(
+                                        model = song.albumArtUri,
+                                        contentDescription = null,
+                                        modifier = Modifier
+                                            .size(56.dp)
+                                            .clip(CircleShape)
+                                    )
                                 }
-                                DropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
-                                    DropdownMenuItem(text = { Text("Remove from app library") }, onClick = {
-                                        vm.removeSongFromLibrary(song.id)
-                                        expanded = false
-                                    })
+                                Column(Modifier.weight(1f)) {
+                                    Text(song.title, maxLines = 1, overflow = TextOverflow.Ellipsis, color = CharcoalText)
+                                    Text(song.artist, maxLines = 1, overflow = TextOverflow.Ellipsis, style = MaterialTheme.typography.bodyMedium, color = VioletAccent)
                                 }
-                            }
+                                Text(song.duration, style = MaterialTheme.typography.labelLarge, color = MutedGreyText)
+                                Box {
+                                    IconButton(onClick = { expanded = true }) {
+                                        Icon(Icons.Default.MoreVert, contentDescription = null, tint = MutedGreyText)
+                                    }
+                                    DropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
+                                        DropdownMenuItem(text = { Text("Remove from app library") }, onClick = {
+                                            vm.removeSongFromLibrary(song.id)
+                                            expanded = false
+                                        })
+                                    }
+                                }
+                            }                            
                         }
                     }
                 }

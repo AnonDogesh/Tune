@@ -20,7 +20,7 @@ import androidx.compose.ui.unit.dp
 
 fun Modifier.glassSurface(
     shape: Shape,
-    alpha: Float = 0.2f,
+    alpha: Float = 0.15f,
     borderAlpha: Float = 0.5f,
     shadowAlpha: Float = 0.14f,
     elevation: Dp = 24.dp
@@ -30,8 +30,8 @@ fun Modifier.glassSurface(
     .graphicsLayer {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
             renderEffect = RenderEffect.createBlurEffect(
-                35f,
-                35f,
+                15f,
+                15f,
                 Shader.TileMode.CLAMP
             ).asComposeRenderEffect()
         }
