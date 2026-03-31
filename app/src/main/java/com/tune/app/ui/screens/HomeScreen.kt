@@ -19,6 +19,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
@@ -52,6 +53,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -162,15 +164,19 @@ fun HomeScreen(
                                     contentPadding = PaddingValues(12.dp)
                                 ) {
                                     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                                        AsyncImage(
-                                            model = song.albumArtUri,
-                                            contentDescription = null,
-                                            modifier = Modifier
-                                                .size(132.dp)
-                                                .clip(CircleShape)
-                                                .background(Color.White.copy(alpha = 0.22f), CircleShape)
-                                                .border(1.dp, Color.White.copy(alpha = 0.65f), CircleShape)
-                                        )
+                                        val recentArtworkModel = song.albumArtUri.takeIf { it.isNotBlank() }
+                                        if (recentArtworkModel == null) {
+                                            ClayArtworkPlaceholder(size = 132.dp)
+                                        } else {
+                                            AsyncImage(
+                                                model = recentArtworkModel,
+                                                contentDescription = null,
+                                                modifier = Modifier
+                                                    .size(132.dp)
+                                                    .clip(CircleShape)
+                                                    .border(1.dp, Color.White.copy(alpha = 0.65f), CircleShape)
+                                            )
+                                        }
                                         Text(song.title, modifier = Modifier.fillMaxWidth(), maxLines = 1, overflow = TextOverflow.Ellipsis, color = CharcoalText)
                                         Text(song.artist, modifier = Modifier.fillMaxWidth(), maxLines = 1, overflow = TextOverflow.Ellipsis, style = MaterialTheme.typography.bodyMedium, color = VioletAccent)
                                     }
@@ -206,11 +212,12 @@ fun HomeScreen(
                                 verticalAlignment = Alignment.CenterVertically,
                                 horizontalArrangement = Arrangement.spacedBy(12.dp)
                             ) {
-                                if (song.albumArtUri.isBlank()) {
+                                val artworkModel = song.albumArtUri.takeIf { it.isNotBlank() }
+                                if (artworkModel == null) {
                                     ClayArtworkPlaceholder()
                                 } else {
                                     AsyncImage(
-                                        model = song.albumArtUri,
+                                        model = artworkModel,
                                         contentDescription = null,
                                         modifier = Modifier
                                             .size(56.dp)
@@ -257,8 +264,9 @@ fun HomeScreen(
                 modifier = Modifier
                     .align(Alignment.BottomCenter)
                     .padding(horizontal = 16.dp, vertical = 96.dp)
+                    .navigationBarsPadding()
                     .fillMaxWidth()
-                    .height(82.dp)
+                    .height(84.dp)
                     .clickable { onNowPlaying() },
                 shape = RoundedCornerShape(28.dp),
                 contentPadding = PaddingValues(horizontal = 12.dp, vertical = 10.dp)
@@ -302,9 +310,11 @@ fun HomeScreen(
 }
 
 @Composable
-private fun ClayArtworkPlaceholder() {
+private fun ClayArtworkPlaceholder(
+    size: Dp = 56.dp
+) {
     ClaySurface(
-        modifier = Modifier.size(56.dp),
+        modifier = Modifier.size(size),
         shape = CircleShape,
         baseColor = VioletAccent.copy(alpha = 0.32f)
     ) {}
