@@ -1,7 +1,5 @@
 package com.tune.app.ui.components
 
-import android.graphics.RenderEffect
-import android.graphics.Shader
 import android.os.Build
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -33,7 +31,13 @@ fun GlassBox(
 ) {
     Box(
         modifier = modifier
-            .shadow(elevation = 10.dp, shape = shape, spotColor = Color.Black.copy(alpha = 0.08f))
+            .shadow(
+                elevation = 12.dp,
+                shape = shape,
+                ambientColor = Color.Black.copy(alpha = 0.1f),
+                spotColor = Color.Black.copy(alpha = 0.15f)
+            )
+            .background(Color.White.copy(alpha = 0.08f), shape)
             .clip(shape)
     ) {
         Spacer(
@@ -41,15 +45,15 @@ fun GlassBox(
                 .matchParentSize()
                 .graphicsLayer {
                     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-                        renderEffect = RenderEffect.createBlurEffect(
-                            20f,
-                            20f,
-                            Shader.TileMode.CLAMP
+                        renderEffect = android.graphics.RenderEffect.createBlurEffect(
+                            25f,
+                            25f,
+                            android.graphics.Shader.TileMode.CLAMP
                         ).asComposeRenderEffect()
                     }
                 }
-                .background(Color.White.copy(alpha = 0.15f), shape)
-                .border(0.6.dp, Color.White.copy(alpha = 0.5f), shape)
+                .background(Color.White.copy(alpha = 0.15f))
+                .border(0.5.dp, Color.White.copy(alpha = 0.45f), shape)
         )
         Box(
             modifier = Modifier.padding(contentPadding),
