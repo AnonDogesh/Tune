@@ -3,8 +3,8 @@ package com.tune.app.ui.theme
 import androidx.compose.ui.graphics.Color
 
 val OffWhiteBackground = Color(0xFFF5F5F7)
-val OliveAccent = Color(0xFF6B7A3D)
-val VioletAccent = Color(0xFF7A5BC1)
+val OliveAccent = Color(0xFF808000)
+val VioletAccent = Color(0xFF7F00FF)
 val CharcoalText = Color(0xFF2E2F33)
 val MutedGreyText = Color(0xFF7B7D85)
 

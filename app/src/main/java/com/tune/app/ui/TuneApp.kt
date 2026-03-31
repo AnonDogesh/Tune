@@ -10,6 +10,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -35,6 +36,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -59,8 +61,8 @@ import com.tune.app.ui.screens.SearchScreen
 import com.tune.app.ui.screens.SettingsScreen
 import com.tune.app.ui.screens.SplashScreen
 import com.tune.app.ui.state.TuneViewModel
-import com.tune.app.ui.components.claySurface
-import com.tune.app.ui.components.glassSurface
+import com.tune.app.ui.components.ClayButton
+import com.tune.app.ui.components.GlassBox
 import com.tune.app.ui.theme.CharcoalText
 import com.tune.app.ui.theme.OffWhiteBackground
 import com.tune.app.ui.theme.OliveAccent
@@ -89,42 +91,47 @@ fun TuneApp() {
                 Column {
                     if (current?.route != Destination.NowPlaying.route && currentSong != null) {
                         val playerShape = RoundedCornerShape(24.dp)
-                        Row(
+                        GlassBox(
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .padding(horizontal = 12.dp, vertical = 6.dp)
-                                .glassSurface(shape = playerShape, alpha = 0.22f, shadowAlpha = 0.2f, elevation = 30.dp)
+                                .shadow(30.dp, playerShape, ambientColor = Color.Black.copy(alpha = 0.2f), spotColor = Color.Black.copy(alpha = 0.2f))
                                 .clickable { navController.navigate(Destination.NowPlaying.route) }
-                                .padding(12.dp),
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.SpaceBetween
+                                .padding(0.dp),
+                            shape = playerShape,
+                            contentPadding = PaddingValues(12.dp)
                         ) {
-                            Column(Modifier.weight(1f)) {
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.SpaceBetween
+                            ) {
+                                Column(Modifier.weight(1f)) {
                                 Text(
                                     currentSong?.title.orEmpty(),
                                     maxLines = 1,
                                     overflow = TextOverflow.Ellipsis,
                                     color = OliveAccent
                                 )
-                                Text(
-                                    "NOW PLAYING",
-                                    maxLines = 1,
-                                    overflow = TextOverflow.Ellipsis,
-                                    color = VioletAccent
-                                )
-                            }
-                            Row(verticalAlignment = Alignment.CenterVertically) {
-                                IconButton(onClick = vm::previousSong) { Icon(Icons.Default.SkipPrevious, null, tint = VioletAccent) }
-                                Box(
-                                    modifier = Modifier
-                                        .size(44.dp)
-                                        .claySurface(shape = CircleShape, baseColor = OliveAccent)
-                                        .clickable(onClick = vm::togglePlayPause),
-                                    contentAlignment = Alignment.Center
-                                ) {
-                                    Icon(if (isPlaying) Icons.Default.Pause else Icons.Default.PlayArrow, null, tint = Color.White, modifier = Modifier.size(24.dp))
+                                    Text(
+                                        "NOW PLAYING",
+                                        maxLines = 1,
+                                        overflow = TextOverflow.Ellipsis,
+                                        color = VioletAccent
+                                    )
                                 }
-                                IconButton(onClick = vm::nextSong) { Icon(Icons.Default.SkipNext, null, tint = VioletAccent) }
+                                Row(verticalAlignment = Alignment.CenterVertically) {
+                                    IconButton(onClick = vm::previousSong) { Icon(Icons.Default.SkipPrevious, null, tint = VioletAccent) }
+                                    ClayButton(
+                                        onClick = vm::togglePlayPause,
+                                        modifier = Modifier.size(44.dp),
+                                        shape = CircleShape,
+                                        baseColor = OliveAccent
+                                    ) {
+                                        Icon(if (isPlaying) Icons.Default.Pause else Icons.Default.PlayArrow, null, tint = Color.White, modifier = Modifier.size(24.dp))
+                                    }
+                                    IconButton(onClick = vm::nextSong) { Icon(Icons.Default.SkipNext, null, tint = VioletAccent) }
+                                }
                             }
                         }
                     }

@@ -14,7 +14,6 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -54,8 +53,9 @@ import androidx.core.content.ContextCompat
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil.compose.AsyncImage
 import com.tune.app.ui.state.TuneViewModel
-import com.tune.app.ui.components.claySurface
-import com.tune.app.ui.components.glassSurface
+import com.tune.app.ui.components.ClayButton
+import com.tune.app.ui.components.ClaySurface
+import com.tune.app.ui.components.GlassBox
 import com.tune.app.ui.theme.CharcoalText
 import com.tune.app.ui.theme.MutedGreyText
 import com.tune.app.ui.theme.OffWhiteBackground
@@ -116,13 +116,15 @@ fun HomeScreen(
                 item {
                     Card(
                         shape = RoundedCornerShape(20.dp),
-                        modifier = Modifier.glassSurface(shape = RoundedCornerShape(20.dp), alpha = 0.2f, elevation = 20.dp),
+                        modifier = Modifier,
                         colors = CardDefaults.cardColors(containerColor = Color.Transparent)
                     ) {
-                        Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                            Text("Audio permission required", style = MaterialTheme.typography.titleLarge, color = CharcoalText)
-                            Text("Allow audio access to scan and play your offline songs.", color = MutedGreyText)
-                            Button(onClick = { launcher.launch(permission) }) { Text("Grant permission") }
+                        GlassBox(shape = RoundedCornerShape(20.dp), contentPadding = PaddingValues(16.dp)) {
+                            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                                Text("Audio permission required", style = MaterialTheme.typography.titleLarge, color = CharcoalText)
+                                Text("Allow audio access to scan and play your offline songs.", color = MutedGreyText)
+                                Button(onClick = { launcher.launch(permission) }) { Text("Grant permission") }
+                            }
                         }
                     }
                 }
@@ -146,13 +148,12 @@ fun HomeScreen(
                                 shape = tileShape,
                                 colors = CardDefaults.cardColors(containerColor = Color.Transparent)
                             ) {
-                                Box {
-                                    Spacer(
-                                        modifier = Modifier
-                                            .fillMaxSize()
-                                            .glassSurface(shape = tileShape, alpha = 0.15f, shadowAlpha = 0.2f, elevation = 30.dp)
-                                    )
-                                    Column(Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                                GlassBox(
+                                    modifier = Modifier.fillMaxSize(),
+                                    shape = tileShape,
+                                    contentPadding = PaddingValues(12.dp)
+                                ) {
+                                    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                                         AsyncImage(
                                             model = song.albumArtUri,
                                             contentDescription = null,
@@ -187,14 +188,13 @@ fun HomeScreen(
                         shape = rowShape,
                         colors = CardDefaults.cardColors(containerColor = Color.Transparent)
                     ) {
-                        Box {
-                            Spacer(
-                                modifier = Modifier
-                                    .fillMaxSize()
-                                    .glassSurface(shape = rowShape, alpha = 0.15f, shadowAlpha = 0.15f, elevation = 22.dp)
-                            )
+                        GlassBox(
+                            modifier = Modifier.fillMaxSize(),
+                            shape = rowShape,
+                            contentPadding = PaddingValues(12.dp)
+                        ) {
                             Row(
-                                modifier = Modifier.padding(12.dp),
+                                modifier = Modifier.fillMaxWidth(),
                                 verticalAlignment = Alignment.CenterVertically,
                                 horizontalArrangement = Arrangement.spacedBy(12.dp)
                             ) {
@@ -225,21 +225,21 @@ fun HomeScreen(
                                         })
                                     }
                                 }
-                            }                            
+                            }
                         }
                     }
                 }
             }
         }
 
-        Box(
+        ClayButton(
+            onClick = { songs.firstOrNull()?.let { vm.playSongFromLibrary(it); onNowPlaying() } },
             modifier = Modifier
                 .align(Alignment.BottomEnd)
                 .padding(16.dp)
-                .size(72.dp)
-                .claySurface(shape = CircleShape, baseColor = OliveAccent)
-                .clickable { songs.firstOrNull()?.let { vm.playSongFromLibrary(it); onNowPlaying() } },
-            contentAlignment = Alignment.Center
+                .size(72.dp),
+            shape = CircleShape,
+            baseColor = OliveAccent
         ) {
             Icon(Icons.Default.PlayArrow, contentDescription = "play", tint = Color.White, modifier = Modifier.size(32.dp))
         }
@@ -248,9 +248,9 @@ fun HomeScreen(
 
 @Composable
 private fun ClayArtworkPlaceholder() {
-    Box(
-        modifier = Modifier
-            .size(56.dp)
-            .claySurface(shape = CircleShape, baseColor = VioletAccent.copy(alpha = 0.32f))
-    )
+    ClaySurface(
+        modifier = Modifier.size(56.dp),
+        shape = CircleShape,
+        baseColor = VioletAccent.copy(alpha = 0.32f)
+    ) {}
 }
