@@ -17,7 +17,6 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.matchParentSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
@@ -150,7 +149,7 @@ fun HomeScreen(
                                 Box {
                                     Spacer(
                                         modifier = Modifier
-                                            .matchParentSize()
+                                            .fillMaxSize()
                                             .glassSurface(shape = tileShape, alpha = 0.15f, shadowAlpha = 0.2f, elevation = 30.dp)
                                     )
                                     Column(Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -191,7 +190,7 @@ fun HomeScreen(
                         Box {
                             Spacer(
                                 modifier = Modifier
-                                    .matchParentSize()
+                                    .fillMaxSize()
                                     .glassSurface(shape = rowShape, alpha = 0.15f, shadowAlpha = 0.15f, elevation = 22.dp)
                             )
                             Row(
