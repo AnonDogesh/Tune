@@ -10,7 +10,6 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.Composable
@@ -32,26 +31,28 @@ fun GlassBox(
     contentPadding: PaddingValues = PaddingValues(0.dp),
     content: @Composable BoxScope.() -> Unit
 ) {
-    Box(modifier = modifier.clip(shape)) {
+    Box(
+        modifier = modifier
+            .shadow(elevation = 10.dp, shape = shape, spotColor = Color.Black.copy(alpha = 0.08f))
+            .clip(shape)
+    ) {
         Spacer(
             modifier = Modifier
-                .fillMaxSize()
+                .matchParentSize()
                 .graphicsLayer {
                     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
                         renderEffect = RenderEffect.createBlurEffect(
-                            25f,
-                            25f,
+                            20f,
+                            20f,
                             Shader.TileMode.CLAMP
                         ).asComposeRenderEffect()
                     }
                 }
-                .background(Color.White.copy(alpha = 0.12f), shape)
-                .border(0.5.dp, Color.White.copy(alpha = 0.4f), shape)
+                .background(Color.White.copy(alpha = 0.15f), shape)
+                .border(0.6.dp, Color.White.copy(alpha = 0.5f), shape)
         )
         Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(contentPadding),
+            modifier = Modifier.padding(contentPadding),
             content = content
         )
     }
@@ -69,8 +70,14 @@ fun ClaySurface(
             .shadow(
                 elevation = 10.dp,
                 shape = shape,
-                ambientColor = Color.Black.copy(alpha = 0.16f),
-                spotColor = Color.Black.copy(alpha = 0.20f)
+                ambientColor = Color.Black.copy(alpha = 0.12f),
+                spotColor = Color.Black.copy(alpha = 0.16f)
+            )
+            .shadow(
+                elevation = 4.dp,
+                shape = shape,
+                ambientColor = Color.White.copy(alpha = 0.12f),
+                spotColor = Color.White.copy(alpha = 0.12f)
             )
             .clip(shape)
             .background(baseColor)
