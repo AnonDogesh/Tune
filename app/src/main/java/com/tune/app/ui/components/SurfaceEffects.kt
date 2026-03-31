@@ -1,6 +1,12 @@
 package com.tune.app.ui.components
 
+import android.graphics.RenderEffect
+import android.graphics.Shader
+import android.os.Build
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.graphicsLayer
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.draw.shadow
@@ -8,22 +14,30 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shape
+import androidx.compose.ui.graphics.asComposeRenderEffect
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 
 fun Modifier.glassSurface(
     shape: Shape,
-    alpha: Float = 0.28f,
-    borderAlpha: Float = 0.8f,
+    alpha: Float = 0.2f,
+    borderAlpha: Float = 0.5f,
     shadowAlpha: Float = 0.14f,
     elevation: Dp = 24.dp
 ): Modifier = this
     .shadow(elevation = elevation, shape = shape, ambientColor = Color.Black.copy(alpha = shadowAlpha), spotColor = Color.Black.copy(alpha = shadowAlpha))
     .clip(shape)
+    .graphicsLayer {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            renderEffect = RenderEffect.createBlurEffect(
+                35f,
+                35f,
+                Shader.TileMode.CLAMP
+            ).asComposeRenderEffect()
+        }
+    }
     .background(Color.White.copy(alpha = alpha), shape)
-    .border(1.dp, Color.White.copy(alpha = borderAlpha), shape)
+    .border(0.5.dp, Color.White.copy(alpha = borderAlpha), shape)
     .drawWithContent {
         drawContent()
         drawRect(
