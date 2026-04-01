@@ -15,12 +15,15 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.graphics.asComposeRenderEffect
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.unit.dp
+import com.tune.app.ui.theme.GlassWhite
 import com.tune.app.ui.theme.OliveAccent
+import com.tune.app.ui.theme.ShadowSoft
 
 @Composable
 fun GlassBox(
@@ -31,13 +34,8 @@ fun GlassBox(
 ) {
     Box(
         modifier = modifier
-            .shadow(
-                elevation = 12.dp,
-                shape = shape,
-                ambientColor = Color.Black.copy(alpha = 0.1f),
-                spotColor = Color.Black.copy(alpha = 0.15f)
-            )
-            .background(Color.White.copy(alpha = 0.08f), shape)
+            .shadow(elevation = 8.dp, shape = shape, spotColor = ShadowSoft)
+            .background(GlassWhite, shape)
             .clip(shape)
     ) {
         Spacer(
@@ -52,8 +50,8 @@ fun GlassBox(
                         ).asComposeRenderEffect()
                     }
                 }
-                .background(Color.White.copy(alpha = 0.15f))
-                .border(0.5.dp, Color.White.copy(alpha = 0.45f), shape)
+                .background(GlassWhite)
+                .border(0.5.dp, Color.White.copy(alpha = 0.85f), shape)
         )
         Box(
             modifier = Modifier.padding(contentPadding),
@@ -67,15 +65,22 @@ fun ClaySurface(
     modifier: Modifier = Modifier,
     shape: Shape = RoundedCornerShape(20.dp),
     baseColor: Color,
+    brush: Brush? = null,
     content: @Composable BoxScope.() -> Unit
 ) {
+    val backgroundModifier = if (brush != null) {
+        Modifier.background(brush = brush, shape = shape)
+    } else {
+        Modifier.background(baseColor)
+    }
+
     Box(
         modifier = modifier
             .shadow(
-                elevation = 10.dp,
+                elevation = 12.dp,
                 shape = shape,
-                ambientColor = Color.Black.copy(alpha = 0.12f),
-                spotColor = Color.Black.copy(alpha = 0.16f)
+                ambientColor = ShadowSoft,
+                spotColor = ShadowSoft
             )
             .shadow(
                 elevation = 4.dp,
@@ -84,8 +89,8 @@ fun ClaySurface(
                 spotColor = Color.White.copy(alpha = 0.12f)
             )
             .clip(shape)
-            .background(baseColor)
-            .border(2.dp, Color.White.copy(alpha = 0.2f), shape),
+            .then(backgroundModifier)
+            .border(2.dp, Color.White.copy(alpha = 0.35f), shape),
         contentAlignment = Alignment.Center,
         content = content
     )
