@@ -49,6 +49,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
@@ -314,7 +315,7 @@ fun HomeScreen(
             GlassBox(
                 modifier = Modifier
                     .align(Alignment.BottomCenter)
-                    .padding(horizontal = 16.dp, vertical = 0.dp)
+                    .padding(start = 16.dp, end = 16.dp, bottom = 8.dp)
                     .fillMaxWidth()
                     .height(64.dp)
                     .background(Color.White.copy(alpha = 0.55f), RoundedCornerShape(28.dp))
