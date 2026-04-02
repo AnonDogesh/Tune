@@ -1,17 +1,17 @@
 package com.tune.app.ui.theme
 
 import androidx.compose.material3.Typography
-import androidx.compose.ui.text.GoogleFont
 import androidx.compose.ui.text.TextStyle
-import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.googlefonts.Font
+import androidx.compose.ui.text.googlefonts.GoogleFont
 import androidx.compose.ui.unit.sp
 
 private val provider = GoogleFont.Provider(
     providerAuthority = "com.google.android.gms.fonts",
     providerPackage = "com.google.android.gms",
-    certificates = androidx.compose.ui.R.array.com_google_android_gms_fonts_certs
+    certificates = com.google.android.gms.base.R.array.com_google_android_gms_fonts_certs
 )
 
 private val nunito = GoogleFont("Nunito")

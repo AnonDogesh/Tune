@@ -102,12 +102,14 @@ fun ClayButton(
     modifier: Modifier = Modifier,
     shape: Shape = RoundedCornerShape(20.dp),
     baseColor: Color = OliveAccent,
+    brush: Brush? = null,
     content: @Composable BoxScope.() -> Unit
 ) {
     ClaySurface(
         modifier = modifier.clickable(onClick = onClick),
         shape = shape,
         baseColor = baseColor,
+        brush = brush,
         content = content
     )
 }
