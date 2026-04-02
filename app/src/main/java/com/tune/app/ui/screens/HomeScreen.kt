@@ -19,6 +19,8 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.navigationBarsPadding
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
@@ -48,10 +50,13 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontStyle
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -64,6 +69,12 @@ import com.tune.app.ui.theme.CharcoalText
 import com.tune.app.ui.theme.MutedGreyText
 import com.tune.app.ui.theme.OffWhiteBackground
 import com.tune.app.ui.theme.OliveAccent
+import com.tune.app.ui.theme.OliveDark
+import com.tune.app.ui.theme.OliveLight
+import com.tune.app.ui.theme.OliveMist
+import com.tune.app.ui.theme.OlivePale
+import com.tune.app.ui.theme.VioletMist
+import com.tune.app.ui.theme.VioletPale
 import com.tune.app.ui.theme.VioletAccent
 
 @OptIn(ExperimentalFoundationApi::class)
@@ -101,6 +112,30 @@ fun HomeScreen(
     }
 
     Box(Modifier.fillMaxSize().background(OffWhiteBackground)) {
+        Box(
+            modifier = Modifier
+                .size(300.dp)
+                .offset(x = (-80).dp, y = (-60).dp)
+                .clip(CircleShape)
+                .background(
+                    Brush.radialGradient(
+                        colors = listOf(VioletPale.copy(alpha = 0.5f), Color.Transparent)
+                    )
+                )
+        )
+
+        Box(
+            modifier = Modifier
+                .size(250.dp)
+                .offset(x = 180.dp, y = 200.dp)
+                .clip(CircleShape)
+                .background(
+                    Brush.radialGradient(
+                        colors = listOf(OlivePale.copy(alpha = 0.4f), Color.Transparent)
+                    )
+                )
+        )
+
         LazyColumn(
             modifier = Modifier.fillMaxSize(),
             contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 16.dp, bottom = 220.dp),
@@ -108,12 +143,17 @@ fun HomeScreen(
         ) {
             item {
                 Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                    Text("Library", style = MaterialTheme.typography.headlineLarge, color = CharcoalText)
+                    Text(
+                        "Library",
+                        style = MaterialTheme.typography.headlineLarge,
+                        fontWeight = FontWeight.Black,
+                        color = CharcoalText
+                    )
                     Text(
                         dailyQuote,
                         style = MaterialTheme.typography.bodyMedium,
                         fontStyle = FontStyle.Italic,
-                        color = VioletAccent
+                        color = OliveAccent
                     )
                 }
             }
@@ -140,7 +180,14 @@ fun HomeScreen(
                 item {
                     Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
                         Text("Recent", style = MaterialTheme.typography.titleLarge, color = CharcoalText)
-                        Text("${recentSongs.size}", color = VioletAccent)
+                        Box(
+                            modifier = Modifier
+                                .clip(RoundedCornerShape(12.dp))
+                                .background(OliveMist)
+                                .padding(horizontal = 10.dp, vertical = 4.dp)
+                        ) {
+                            Text("${recentSongs.size}", color = OliveAccent)
+                        }
                     }
                 }
                 item {
@@ -162,17 +209,21 @@ fun HomeScreen(
                                     contentPadding = PaddingValues(12.dp)
                                 ) {
                                     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                                        AsyncImage(
-                                            model = song.albumArtUri,
-                                            contentDescription = null,
-                                            modifier = Modifier
-                                                .size(132.dp)
-                                                .clip(CircleShape)
-                                                .background(Color.White.copy(alpha = 0.22f), CircleShape)
-                                                .border(1.dp, Color.White.copy(alpha = 0.65f), CircleShape)
-                                        )
+                                        val recentArtworkModel = song.albumArtUri.takeIf { it.isNotBlank() }
+                                        if (recentArtworkModel == null) {
+                                            ClayArtworkPlaceholder(size = 132.dp)
+                                        } else {
+                                            AsyncImage(
+                                                model = recentArtworkModel,
+                                                contentDescription = null,
+                                                modifier = Modifier
+                                                    .size(132.dp)
+                                                    .clip(RoundedCornerShape(20.dp))
+                                                    .border(1.dp, Color.White.copy(alpha = 0.65f), RoundedCornerShape(20.dp))
+                                            )
+                                        }
                                         Text(song.title, modifier = Modifier.fillMaxWidth(), maxLines = 1, overflow = TextOverflow.Ellipsis, color = CharcoalText)
-                                        Text(song.artist, modifier = Modifier.fillMaxWidth(), maxLines = 1, overflow = TextOverflow.Ellipsis, style = MaterialTheme.typography.bodyMedium, color = VioletAccent)
+                                        Text(song.artist, modifier = Modifier.fillMaxWidth(), maxLines = 1, overflow = TextOverflow.Ellipsis, style = MaterialTheme.typography.bodyMedium, color = OliveAccent)
                                     }
                                 }
                             }
@@ -206,11 +257,12 @@ fun HomeScreen(
                                 verticalAlignment = Alignment.CenterVertically,
                                 horizontalArrangement = Arrangement.spacedBy(12.dp)
                             ) {
-                                if (song.albumArtUri.isBlank()) {
+                                val artworkModel = song.albumArtUri.takeIf { it.isNotBlank() }
+                                if (artworkModel == null) {
                                     ClayArtworkPlaceholder()
                                 } else {
                                     AsyncImage(
-                                        model = song.albumArtUri,
+                                        model = artworkModel,
                                         contentDescription = null,
                                         modifier = Modifier
                                             .size(56.dp)
@@ -219,7 +271,7 @@ fun HomeScreen(
                                 }
                                 Column(Modifier.weight(1f)) {
                                     Text(song.title, maxLines = 1, overflow = TextOverflow.Ellipsis, color = CharcoalText)
-                                    Text(song.artist, maxLines = 1, overflow = TextOverflow.Ellipsis, style = MaterialTheme.typography.bodyMedium, color = VioletAccent)
+                                    Text(song.artist, maxLines = 1, overflow = TextOverflow.Ellipsis, style = MaterialTheme.typography.bodyMedium, color = OliveAccent)
                                 }
                                 Text(song.duration, style = MaterialTheme.typography.labelLarge, color = MutedGreyText)
                                 Box {
@@ -247,7 +299,8 @@ fun HomeScreen(
                 .padding(16.dp)
                 .size(72.dp),
             shape = CircleShape,
-            baseColor = OliveAccent
+            baseColor = OliveAccent,
+            brush = Brush.linearGradient(listOf(OliveLight, OliveDark))
         ) {
             Icon(Icons.Default.PlayArrow, contentDescription = "play", tint = Color.White, modifier = Modifier.size(32.dp))
         }
@@ -257,8 +310,9 @@ fun HomeScreen(
                 modifier = Modifier
                     .align(Alignment.BottomCenter)
                     .padding(horizontal = 16.dp, vertical = 96.dp)
+                    .navigationBarsPadding()
                     .fillMaxWidth()
-                    .height(82.dp)
+                    .height(84.dp)
                     .clickable { onNowPlaying() },
                 shape = RoundedCornerShape(28.dp),
                 contentPadding = PaddingValues(horizontal = 12.dp, vertical = 10.dp)
@@ -302,10 +356,12 @@ fun HomeScreen(
 }
 
 @Composable
-private fun ClayArtworkPlaceholder() {
+private fun ClayArtworkPlaceholder(
+    size: Dp = 56.dp
+) {
     ClaySurface(
-        modifier = Modifier.size(56.dp),
+        modifier = Modifier.size(size),
         shape = CircleShape,
-        baseColor = VioletAccent.copy(alpha = 0.32f)
+        baseColor = VioletMist
     ) {}
 }
