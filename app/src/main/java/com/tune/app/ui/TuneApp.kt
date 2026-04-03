@@ -155,7 +155,7 @@ fun TuneApp() {
                 }
             }
 
-            if (currentSong != null && current?.route != Destination.Splash.route) {
+            if (currentSong != null && current?.route != Destination.Splash.route && current?.route != Destination.NowPlaying.route) {
                 GlassBox(
                     modifier = Modifier
                         .align(Alignment.BottomCenter)
