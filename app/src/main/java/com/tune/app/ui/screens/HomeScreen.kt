@@ -27,10 +27,6 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.MoreVert
-import androidx.compose.material.icons.filled.Pause
-import androidx.compose.material.icons.filled.PlayArrow
-import androidx.compose.material.icons.filled.SkipNext
-import androidx.compose.material.icons.filled.SkipPrevious
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -63,7 +59,6 @@ import androidx.core.content.ContextCompat
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil.compose.AsyncImage
 import com.tune.app.ui.state.TuneViewModel
-import com.tune.app.ui.components.ClayButton
 import com.tune.app.ui.components.ClaySurface
 import com.tune.app.ui.components.GlassBox
 import com.tune.app.ui.theme.CharcoalText
@@ -86,8 +81,6 @@ fun HomeScreen(
 ) {
     val songs by vm.songs.collectAsStateWithLifecycle()
     val recentSongs by vm.recentSongs.collectAsStateWithLifecycle()
-    val currentSong by vm.currentSong.collectAsStateWithLifecycle()
-    val isPlaying by vm.isPlaying.collectAsStateWithLifecycle()
     val context = LocalContext.current
     val permission = if (Build.VERSION.SDK_INT >= 33) Manifest.permission.READ_MEDIA_AUDIO else Manifest.permission.READ_EXTERNAL_STORAGE
     val granted = ContextCompat.checkSelfPermission(context, permission) == PackageManager.PERMISSION_GRANTED
@@ -311,55 +304,6 @@ fun HomeScreen(
             }
         }
 
-        if (currentSong != null) {
-            GlassBox(
-                modifier = Modifier
-                    .align(Alignment.BottomCenter)
-                    .padding(start = 16.dp, end = 16.dp, bottom = 8.dp)
-                    .fillMaxWidth()
-                    .height(64.dp)
-                    .background(Color.White.copy(alpha = 0.55f), RoundedCornerShape(28.dp))
-                    .clickable { onNowPlaying() },
-                shape = RoundedCornerShape(28.dp),
-                contentPadding = PaddingValues(horizontal = 12.dp, vertical = 0.dp)
-            ) {
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(64.dp),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.SpaceBetween
-                ) {
-                    Column(Modifier.weight(1f)) {
-                        Text(
-                            currentSong?.title.orEmpty(),
-                            maxLines = 1,
-                            overflow = TextOverflow.Ellipsis,
-                            color = CharcoalText
-                        )
-                        Text(
-                            currentSong?.artist.orEmpty(),
-                            maxLines = 1,
-                            overflow = TextOverflow.Ellipsis,
-                            color = VioletAccent,
-                            style = MaterialTheme.typography.bodyMedium
-                        )
-                    }
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        IconButton(onClick = vm::previousSong) { Icon(Icons.Default.SkipPrevious, null, tint = VioletAccent) }
-                        ClayButton(
-                            onClick = vm::togglePlayPause,
-                            modifier = Modifier.size(42.dp),
-                            shape = CircleShape,
-                            baseColor = OliveAccent
-                        ) {
-                            Icon(if (isPlaying) Icons.Default.Pause else Icons.Default.PlayArrow, null, tint = Color.White)
-                        }
-                        IconButton(onClick = vm::nextSong) { Icon(Icons.Default.SkipNext, null, tint = VioletAccent) }
-                    }
-                }
-            }
-        }
     }
 }
 
