@@ -164,6 +164,8 @@ fun TuneApp() {
                         .height(64.dp)
                         .alpha(0.9f)
                         .clickable { navController.navigate(Destination.NowPlaying.route) },
+                    shadowElevation = 0.dp,
+                    shadowColor = Color.Transparent,
                     contentPadding = PaddingValues(horizontal = 12.dp, vertical = 0.dp)
                 ) {
                     Row(
