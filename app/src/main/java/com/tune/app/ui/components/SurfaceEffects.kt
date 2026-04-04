@@ -33,6 +33,10 @@ fun GlassBox(
     contentPadding: PaddingValues = PaddingValues(0.dp),
     shadowElevation: Dp = 8.dp,
     shadowColor: Color = Color(0x2A4A3480),
+    glassAlpha: Float = 0.72f,
+    borderAlpha: Float = 0.90f,
+    blurAlpha: Float = 0.10f,
+    blurRadius: Float = 18f,
     content: @Composable BoxScope.() -> Unit
 ) {
     Box(
@@ -44,8 +48,8 @@ fun GlassBox(
                 spotColor = shadowColor
             )
             .clip(shape)
-            .background(Color.White.copy(alpha = 0.72f), shape)
-            .border(1.dp, Color.White.copy(alpha = 0.90f), shape)
+            .background(Color.White.copy(alpha = glassAlpha), shape)
+            .border(1.dp, Color.White.copy(alpha = borderAlpha), shape)
     ) {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
             Spacer(
@@ -53,10 +57,10 @@ fun GlassBox(
                     .matchParentSize()
                     .graphicsLayer {
                         renderEffect = RenderEffect.createBlurEffect(
-                            18f, 18f, Shader.TileMode.CLAMP
+                            blurRadius, blurRadius, Shader.TileMode.CLAMP
                         ).asComposeRenderEffect()
                     }
-                    .background(Color.White.copy(alpha = 0.10f), shape)
+                    .background(Color.White.copy(alpha = blurAlpha), shape)
             )
         }
         Box(

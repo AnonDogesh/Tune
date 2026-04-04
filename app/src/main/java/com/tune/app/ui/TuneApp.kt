@@ -161,17 +161,20 @@ fun TuneApp() {
                         .align(Alignment.BottomCenter)
                         .padding(start = 16.dp, end = 16.dp, bottom = 8.dp)
                         .fillMaxWidth()
-                        .height(64.dp)
+                        .height(72.dp)
                         .alpha(0.9f)
                         .clickable { navController.navigate(Destination.NowPlaying.route) },
                     shadowElevation = 0.dp,
                     shadowColor = Color.Transparent,
+                    glassAlpha = 0.42f,
+                    blurAlpha = 0.18f,
+                    blurRadius = 22f,
                     contentPadding = PaddingValues(horizontal = 12.dp, vertical = 0.dp)
                 ) {
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .height(64.dp),
+                            .height(72.dp),
                         verticalAlignment = Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.SpaceBetween
                     ) {
