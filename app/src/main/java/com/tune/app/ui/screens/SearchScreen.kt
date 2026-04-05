@@ -48,7 +48,7 @@ import com.tune.app.ui.theme.VioletAccent
 import com.tune.app.ui.theme.VioletPale
 
 @Composable
-fun SearchScreen(vm: TuneViewModel, onNowPlaying: () -> Unit) {
+fun SearchScreen(vm: TuneViewModel, onNowPlaying: () -> Unit, onArtist: (String) -> Unit) {
     val songs by vm.songs.collectAsStateWithLifecycle()
     val query by vm.searchQuery.collectAsStateWithLifecycle()
 
@@ -116,11 +116,15 @@ fun SearchScreen(vm: TuneViewModel, onNowPlaying: () -> Unit) {
                 )
             }
 
-            LazyColumn(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+            LazyColumn(
+                modifier = Modifier.weight(1f),
+                verticalArrangement = Arrangement.spacedBy(8.dp),
+                contentPadding = PaddingValues(bottom = 190.dp)
+            ) {
                 if (hasQuery && artistResults.isNotEmpty()) {
                     item { SectionHeader("Artists") }
                     items(artistResults) { artist ->
-                        ResultRow(title = artist, subtitle = "Artist")
+                        ResultRow(title = artist, subtitle = "Artist", onClick = { onArtist(artist) })
                     }
                 }
 
@@ -128,7 +132,8 @@ fun SearchScreen(vm: TuneViewModel, onNowPlaying: () -> Unit) {
                     item { SectionHeader("Albums") }
                     items(albumResults) { album ->
                         val art = songs.firstOrNull { it.album == album }?.albumArtUri
-                        ResultRow(title = album, subtitle = "Album", art = art)
+                        val albumArtist = songs.firstOrNull { it.album == album }?.artist.orEmpty()
+                        ResultRow(title = album, subtitle = "Album", art = art, onClick = { onArtist(albumArtist) })
                     }
                 }
 

@@ -47,6 +47,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import androidx.navigation.navArgument
 import com.tune.app.ui.navigation.Destination
 import com.tune.app.ui.screens.AlbumScreen
 import com.tune.app.ui.screens.ArtistScreen
@@ -73,6 +74,7 @@ fun TuneApp() {
     val vm: TuneViewModel = hiltViewModel()
     val currentSong by vm.currentSong.collectAsStateWithLifecycle()
     val isPlaying by vm.isPlaying.collectAsStateWithLifecycle()
+    val songs by vm.songs.collectAsStateWithLifecycle()
 
     val items = listOf(
         Triple(Destination.Home, Icons.Default.Home, "Library"),
@@ -131,8 +133,28 @@ fun TuneApp() {
                 }
                 composable(Destination.NowPlaying.route) { NowPlayingScreen(vm = vm, onBack = { navController.popBackStack() }) }
                 composable(Destination.Playlists.route) { PlaylistsScreen(vm = vm) }
-                composable(Destination.Search.route) { SearchScreen(vm = vm, onNowPlaying = { navController.navigate(Destination.NowPlaying.route) }) }
-                composable(Destination.Artist.route) { ArtistScreen() }
+                composable(Destination.Search.route) {
+                    SearchScreen(
+                        vm = vm,
+                        onNowPlaying = { navController.navigate(Destination.NowPlaying.route) },
+                        onArtist = { artist -> navController.navigate(Destination.Artist.createRoute(artist)) }
+                    )
+                }
+                composable(
+                    route = Destination.Artist.route,
+                    arguments = listOf(navArgument(Destination.Artist.ARG_ARTIST) { defaultValue = "" })
+                ) { backStack ->
+                    val artistName = backStack.arguments?.getString(Destination.Artist.ARG_ARTIST).orEmpty()
+                    ArtistScreen(
+                        artistName = artistName,
+                        songs = songs,
+                        onBack = { navController.popBackStack() },
+                        onPlaySong = {
+                            vm.playSongFromLibrary(it)
+                            navController.navigate(Destination.NowPlaying.route)
+                        }
+                    )
+                }
                 composable(Destination.Album.route) { AlbumScreen() }
                 composable(Destination.Settings.route) {
                     SettingsScreen(
@@ -167,8 +189,8 @@ fun TuneApp() {
                     shadowElevation = 0.dp,
                     shadowColor = Color.Transparent,
                     glassAlpha = 0.42f,
-                    blurAlpha = 0.18f,
-                    blurRadius = 22f,
+                    blurAlpha = 0.22f,
+                    blurRadius = 28f,
                     contentPadding = PaddingValues(horizontal = 12.dp, vertical = 0.dp)
                 ) {
                     Row(

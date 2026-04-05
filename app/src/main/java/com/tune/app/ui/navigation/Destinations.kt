@@ -1,12 +1,17 @@
 package com.tune.app.ui.navigation
 
+import android.net.Uri
+
 sealed class Destination(val route: String) {
     data object Splash : Destination("splash")
     data object Home : Destination("home")
     data object NowPlaying : Destination("now_playing")
     data object Playlists : Destination("playlists")
     data object Search : Destination("search")
-    data object Artist : Destination("artist")
+    data object Artist : Destination("artist/{artistName}") {
+        const val ARG_ARTIST = "artistName"
+        fun createRoute(artistName: String): String = "artist/${Uri.encode(artistName)}"
+    }
     data object Album : Destination("album")
     data object Settings : Destination("settings")
     data object SettingsEqualizer : Destination("settings_equalizer")
