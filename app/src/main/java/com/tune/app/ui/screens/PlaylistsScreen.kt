@@ -1,7 +1,6 @@
 package com.tune.app.ui.screens
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -81,10 +80,15 @@ fun PlaylistsScreen(vm: TuneViewModel) {
 
         Column(Modifier.fillMaxSize().padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
         Text("Playlists", style = MaterialTheme.typography.headlineLarge, color = CharcoalText)
-        ClayButton(onClick = { showCreate = true }, shape = RoundedCornerShape(20.dp), baseColor = OliveAccent) {
+        ClayButton(
+            onClick = { showCreate = true },
+            modifier = Modifier.fillMaxWidth().height(56.dp),
+            shape = RoundedCornerShape(20.dp),
+            baseColor = OliveAccent
+        ) {
             Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 Icon(Icons.Default.Add, contentDescription = null, tint = Color.White)
-                Text("New", color = Color.White)
+                Text("Create", color = Color.White, style = MaterialTheme.typography.titleLarge)
             }
         }
 
@@ -105,9 +109,7 @@ fun PlaylistsScreen(vm: TuneViewModel) {
                         shape = RoundedCornerShape(16.dp),
                         contentPadding = PaddingValues(horizontal = 12.dp, vertical = 8.dp)
                     ) {
-                        Box(Modifier.border(1.dp, VioletPale, RoundedCornerShape(16.dp)).padding(horizontal = 2.dp, vertical = 0.dp)) {
-                            Text(p, color = CharcoalText)
-                        }
+                        Text(p, color = CharcoalText)
                     }
                 }
             }

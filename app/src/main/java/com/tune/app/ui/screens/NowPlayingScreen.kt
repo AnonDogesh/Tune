@@ -29,7 +29,6 @@ import androidx.compose.material.icons.filled.Repeat
 import androidx.compose.material.icons.filled.RepeatOne
 import androidx.compose.material.icons.filled.SkipNext
 import androidx.compose.material.icons.filled.SkipPrevious
-import androidx.compose.material.icons.filled.SwapHoriz
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
@@ -52,6 +51,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.compose.ui.window.Dialog
 import coil.compose.AsyncImage
 import com.tune.app.ui.components.ClaySurface
 import com.tune.app.ui.components.GlassBox
@@ -78,12 +78,12 @@ fun NowPlayingScreen(vm: TuneViewModel, onBack: () -> Unit) {
     val durationMs by vm.durationMs.collectAsStateWithLifecycle()
     val queueName by vm.queueName.collectAsStateWithLifecycle()
     val queueSongs by vm.queueSongs.collectAsStateWithLifecycle()
-    val shuffleEnabled by vm.isShuffleEnabled.collectAsStateWithLifecycle()
     val repeatMode by vm.currentRepeatMode.collectAsStateWithLifecycle()
     val customPlaylists by vm.customPlaylistNames.collectAsStateWithLifecycle()
 
     val progress = (positionMs.toFloat() / durationMs.toFloat()).coerceIn(0f, 1f)
     var menuExpanded by remember { mutableStateOf(false) }
+    var showSongDetails by remember { mutableStateOf(false) }
 
     Box(
         modifier = Modifier
@@ -135,7 +135,10 @@ fun NowPlayingScreen(vm: TuneViewModel, onBack: () -> Unit) {
                                     menuExpanded = false
                                 })
                             }
-                            DropdownMenuItem(text = { Text("Song details") }, onClick = { menuExpanded = false })
+                            DropdownMenuItem(text = { Text("Song details") }, onClick = {
+                                menuExpanded = false
+                                showSongDetails = true
+                            })
                         }
                     }
                 }
@@ -165,12 +168,6 @@ fun NowPlayingScreen(vm: TuneViewModel, onBack: () -> Unit) {
                         Text(currentSong?.title ?: "Pick a song", maxLines = 1, overflow = TextOverflow.Ellipsis, color = CharcoalText, style = MaterialTheme.typography.headlineLarge)
                         Text(currentSong?.artist ?: "Unknown Artist", maxLines = 1, overflow = TextOverflow.Ellipsis, color = OliveAccent, style = MaterialTheme.typography.titleLarge)
                     }
-                    currentSong?.let { song ->
-                        val fav = song.id in favorites
-                        IconButton(onClick = { vm.toggleFavorite(song.id) }) {
-                            Icon(if (fav) Icons.Default.Favorite else Icons.Default.FavoriteBorder, contentDescription = "favorite", tint = if (fav) CoralRed else VioletAccent, modifier = Modifier.size(40.dp))
-                        }
-                    }
                 }
             }
 
@@ -199,10 +196,19 @@ fun NowPlayingScreen(vm: TuneViewModel, onBack: () -> Unit) {
                     contentPadding = PaddingValues(horizontal = 16.dp, vertical = 20.dp)
                 ) {
                     Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceEvenly, verticalAlignment = Alignment.CenterVertically) {
-                        IconButton(
-                            modifier = Modifier.clip(CircleShape).background(if (shuffleEnabled) OliveMist else Color.Transparent),
-                            onClick = vm::toggleShuffle
-                        ) { Icon(Icons.Default.SwapHoriz, null, tint = if (shuffleEnabled) OliveAccent else MutedGreyText) }
+                        currentSong?.let { song ->
+                            val fav = song.id in favorites
+                            IconButton(
+                                modifier = Modifier.clip(CircleShape).background(if (fav) OliveMist else Color.Transparent),
+                                onClick = { vm.toggleFavorite(song.id) }
+                            ) {
+                                Icon(
+                                    if (fav) Icons.Default.Favorite else Icons.Default.FavoriteBorder,
+                                    null,
+                                    tint = if (fav) CoralRed else MutedGreyText
+                                )
+                            }
+                        } ?: IconButton(onClick = {}) { Icon(Icons.Default.FavoriteBorder, null, tint = MutedGreyText) }
                         GlassBox(modifier = Modifier.size(48.dp), shape = CircleShape, contentPadding = PaddingValues(0.dp)) {
                             IconButton(onClick = vm::previousSong) { Icon(Icons.Default.SkipPrevious, null, tint = CharcoalText) }
                         }
@@ -254,6 +260,39 @@ fun NowPlayingScreen(vm: TuneViewModel, onBack: () -> Unit) {
                 }
             }
         }
+    }
+
+    if (showSongDetails) {
+        Dialog(onDismissRequest = { showSongDetails = false }) {
+            GlassBox(
+                modifier = Modifier
+                    .fillMaxWidth(0.9f),
+                shape = RoundedCornerShape(28.dp),
+                contentPadding = PaddingValues(18.dp),
+                shadowElevation = 0.dp,
+                glassAlpha = 0.55f,
+                blurAlpha = 0.2f,
+                blurRadius = 24f
+            ) {
+                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Text("Song Details", color = CharcoalText, style = MaterialTheme.typography.titleLarge)
+                    DetailRow("Title", currentSong?.title.orEmpty())
+                    DetailRow("Artist", currentSong?.artist.orEmpty())
+                    DetailRow("Album", currentSong?.album.orEmpty())
+                    DetailRow("Duration", currentSong?.duration.orEmpty())
+                    DetailRow("File path", currentSong?.path.orEmpty())
+                    DetailRow("Album art URI", currentSong?.albumArtUri.orEmpty())
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun DetailRow(label: String, value: String) {
+    Column {
+        Text(label, color = OliveAccent, style = MaterialTheme.typography.labelSmall)
+        Text(value.ifBlank { "—" }, color = CharcoalText, style = MaterialTheme.typography.bodyMedium)
     }
 }
 
