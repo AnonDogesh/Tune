@@ -184,13 +184,14 @@ fun TuneApp() {
                         .padding(start = 16.dp, end = 16.dp, bottom = 8.dp)
                         .fillMaxWidth()
                         .height(72.dp)
-                        .alpha(0.9f)
+                        .alpha(1f)
                         .clickable { navController.navigate(Destination.NowPlaying.route) },
                     shadowElevation = 0.dp,
                     shadowColor = Color.Transparent,
-                    glassAlpha = 0.42f,
-                    blurAlpha = 0.22f,
-                    blurRadius = 28f,
+                    glassAlpha = 0.30f,
+                    borderAlpha = 0.75f,
+                    blurAlpha = 0.30f,
+                    blurRadius = 36f,
                     contentPadding = PaddingValues(horizontal = 12.dp, vertical = 0.dp)
                 ) {
                     Row(
