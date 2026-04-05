@@ -69,11 +69,11 @@ fun SettingsScreen(
     Column(
         Modifier
             .fillMaxSize()
-            .padding(top = 24.dp),
+            .padding(top = 16.dp),
         verticalArrangement = Arrangement.spacedBy(18.dp)
     ) {
         Text(
-            "App Settings and Configuration",
+            "Settings",
             style = MaterialTheme.typography.headlineLarge,
             color = CharcoalText,
             modifier = Modifier.padding(horizontal = 24.dp)

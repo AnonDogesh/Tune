@@ -81,6 +81,7 @@ fun HomeScreen(
 ) {
     val songs by vm.songs.collectAsStateWithLifecycle()
     val recentSongs by vm.recentSongs.collectAsStateWithLifecycle()
+    val currentSong by vm.currentSong.collectAsStateWithLifecycle()
     val context = LocalContext.current
     val permission = if (Build.VERSION.SDK_INT >= 33) Manifest.permission.READ_MEDIA_AUDIO else Manifest.permission.READ_EXTERNAL_STORAGE
     val granted = ContextCompat.checkSelfPermission(context, permission) == PackageManager.PERMISSION_GRANTED
@@ -196,7 +197,12 @@ fun HomeScreen(
                                 GlassBox(
                                     modifier = Modifier
                                         .fillMaxWidth()
-                                        .height(228.dp),
+                                        .height(228.dp)
+                                        .border(
+                                            width = if (currentSong?.id == song.id) 2.dp else 0.dp,
+                                            color = if (currentSong?.id == song.id) VioletAccent else Color.Transparent,
+                                            shape = tileShape
+                                        ),
                                     shape = tileShape,
                                     contentPadding = PaddingValues(12.dp)
                                 ) {
@@ -260,7 +266,13 @@ fun HomeScreen(
                         colors = CardDefaults.cardColors(containerColor = Color.Transparent)
                     ) {
                         GlassBox(
-                            modifier = Modifier.fillMaxWidth(),
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .border(
+                                    width = if (currentSong?.id == song.id) 2.dp else 0.dp,
+                                    color = if (currentSong?.id == song.id) VioletAccent else Color.Transparent,
+                                    shape = rowShape
+                                ),
                             shape = rowShape,
                             contentPadding = PaddingValues(12.dp)
                         ) {

@@ -51,6 +51,7 @@ import com.tune.app.ui.theme.VioletPale
 fun SearchScreen(vm: TuneViewModel, onNowPlaying: () -> Unit, onArtist: (String) -> Unit) {
     val songs by vm.songs.collectAsStateWithLifecycle()
     val query by vm.searchQuery.collectAsStateWithLifecycle()
+    val currentSong by vm.currentSong.collectAsStateWithLifecycle()
 
     val normalized = query.trim()
     val hasQuery = normalized.isNotEmpty()
@@ -82,7 +83,7 @@ fun SearchScreen(vm: TuneViewModel, onNowPlaying: () -> Unit, onArtist: (String)
             Modifier
                 .fillMaxSize()
                 .padding(horizontal = 16.dp)
-                .padding(top = 28.dp),
+                .padding(top = 16.dp),
             verticalArrangement = Arrangement.spacedBy(10.dp)
         ) {
             Text("Search", style = MaterialTheme.typography.headlineLarge, color = CharcoalText)
@@ -144,6 +145,7 @@ fun SearchScreen(vm: TuneViewModel, onNowPlaying: () -> Unit, onArtist: (String)
                             title = song.title,
                             subtitle = song.artist,
                             art = song.albumArtUri,
+                            isCurrent = currentSong?.id == song.id,
                             onClick = {
                                 vm.playSongFromLibrary(song)
                                 onNowPlaying()
@@ -166,12 +168,18 @@ private fun ResultRow(
     title: String,
     subtitle: String,
     art: String? = null,
+    isCurrent: Boolean = false,
     onClick: () -> Unit = {}
 ) {
     GlassBox(
         modifier = Modifier
             .fillMaxWidth()
-            .clickable { onClick() },
+            .clickable { onClick() }
+            .border(
+                width = if (isCurrent) 2.dp else 0.dp,
+                color = if (isCurrent) VioletAccent else Color.Transparent,
+                shape = RoundedCornerShape(20.dp)
+            ),
         shape = RoundedCornerShape(20.dp),
         contentPadding = PaddingValues(10.dp)
     ) {

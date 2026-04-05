@@ -148,6 +148,7 @@ fun TuneApp() {
                     ArtistScreen(
                         artistName = artistName,
                         songs = songs,
+                        currentSongId = currentSong?.id,
                         onBack = { navController.popBackStack() },
                         onPlaySong = {
                             vm.playSongFromLibrary(it)

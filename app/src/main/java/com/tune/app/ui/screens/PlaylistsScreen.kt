@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.matchParentSize
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -55,6 +56,7 @@ import com.tune.app.ui.theme.VioletPale
 @Composable
 fun PlaylistsScreen(vm: TuneViewModel) {
     val playlists by vm.playlists.collectAsStateWithLifecycle()
+    val currentSong by vm.currentSong.collectAsStateWithLifecycle()
     var selected by remember(playlists) { mutableStateOf(playlists.firstOrNull() ?: "Favorites (0)") }
     val songs = vm.getPlaylistSongs(selected)
     var showCreate by remember { mutableStateOf(false) }
@@ -140,7 +142,12 @@ fun PlaylistsScreen(vm: TuneViewModel) {
                                 Text(song.title, maxLines = 1, overflow = TextOverflow.Ellipsis, color = CharcoalText)
                                 Text(song.artist, maxLines = 1, overflow = TextOverflow.Ellipsis, style = MaterialTheme.typography.bodyMedium, color = OliveAccent)
                             }
-                            Text(song.duration, style = MaterialTheme.typography.labelLarge, color = MutedGreyText)
+                            Text(
+                                song.duration,
+                                style = MaterialTheme.typography.labelLarge,
+                                color = MutedGreyText,
+                                modifier = Modifier.padding(end = 8.dp)
+                            )
                             Box(
                                 modifier = Modifier
                                     .size(36.dp)
@@ -150,6 +157,13 @@ fun PlaylistsScreen(vm: TuneViewModel) {
                             ) {
                                 Icon(Icons.Default.Delete, contentDescription = "remove", tint = Color(0xFFD4686F))
                             }
+                        }
+                        if (currentSong?.id == song.id) {
+                            Box(
+                                Modifier
+                                    .matchParentSize()
+                                    .border(2.dp, VioletAccent, RoundedCornerShape(22.dp))
+                            )
                         }
                     } 
                 }

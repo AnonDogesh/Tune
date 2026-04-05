@@ -1,6 +1,7 @@
 package com.tune.app.ui.screens
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -12,6 +13,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.matchParentSize
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
@@ -46,6 +48,7 @@ import com.tune.app.ui.theme.VioletPale
 fun ArtistScreen(
     artistName: String,
     songs: List<Song>,
+    currentSongId: Long?,
     onBack: () -> Unit,
     onPlaySong: (Song) -> Unit
 ) {
@@ -112,6 +115,13 @@ fun ArtistScreen(
                                 Text(song.artist, maxLines = 1, overflow = TextOverflow.Ellipsis, color = MutedGreyText, style = MaterialTheme.typography.bodyMedium)
                             }
                             Text(song.duration, color = MutedGreyText, style = MaterialTheme.typography.labelLarge)
+                        }
+                        if (currentSongId == song.id) {
+                            Box(
+                                Modifier
+                                    .matchParentSize()
+                                    .border(2.dp, VioletAccent, RoundedCornerShape(20.dp))
+                            )
                         }
                     }
                 }
