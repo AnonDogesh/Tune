@@ -11,7 +11,6 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.matchParentSize
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -259,7 +258,7 @@ fun NowPlayingScreen(vm: TuneViewModel, onBack: () -> Unit) {
                         Text(song.duration, color = MutedGreyText)
                     }
                     if (currentSong?.id == song.id) {
-                        Box(Modifier.matchParentSize().border(2.dp, VioletAccent, RoundedCornerShape(20.dp)))
+                        Box(Modifier.fillMaxSize().border(2.dp, VioletAccent, RoundedCornerShape(20.dp)))
                     }
                 }
             }
