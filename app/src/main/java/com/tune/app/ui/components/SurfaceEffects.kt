@@ -9,6 +9,8 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.matchParentSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.Composable
@@ -38,16 +40,6 @@ fun GlassBox(
     blurRadius: Float = 40f,
     content: @Composable BoxScope.() -> Unit
 ) {
-    val blurModifier = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-        Modifier.graphicsLayer {
-            renderEffect = RenderEffect.createBlurEffect(
-                blurRadius, blurRadius, Shader.TileMode.CLAMP
-            ).asComposeRenderEffect()
-        }
-    } else {
-        Modifier
-    }
-
     Box(
         modifier = modifier
             .shadow(
@@ -57,12 +49,31 @@ fun GlassBox(
                 spotColor = shadowColor
             )
             .clip(shape)
-            .then(blurModifier)
-            .background(Color.White.copy(alpha = glassAlpha), shape)
             .border(1.dp, Color.White.copy(alpha = borderAlpha), shape)
     ) {
+        // Layer 1: blur + tint — isolated, does not affect siblings
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            Spacer(
+                modifier = Modifier
+                    .matchParentSize()
+                    .graphicsLayer {
+                        renderEffect = RenderEffect.createBlurEffect(
+                            blurRadius, blurRadius, Shader.TileMode.CLAMP
+                        ).asComposeRenderEffect()
+                    }
+            )
+        }
+        // Layer 2: white tint on top of blur, below content
+        Spacer(
+            modifier = Modifier
+                .matchParentSize()
+                .background(Color.White.copy(alpha = glassAlpha), shape)
+        )
+        // Layer 3: actual content — completely unaffected by blur
         Box(
-            modifier = Modifier.padding(contentPadding),
+            modifier = Modifier
+                .matchParentSize()
+                .padding(contentPadding),
             content = content
         )
     }
