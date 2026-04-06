@@ -9,7 +9,6 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.Composable
@@ -33,12 +32,22 @@ fun GlassBox(
     contentPadding: PaddingValues = PaddingValues(0.dp),
     shadowElevation: Dp = 8.dp,
     shadowColor: Color = Color(0x2A4A3480),
-    glassAlpha: Float = 0.72f,
+    glassAlpha: Float = 0.45f,
     borderAlpha: Float = 0.90f,
-    blurAlpha: Float = 0.10f,
-    blurRadius: Float = 18f,
+    blurAlpha: Float = 0.0f,
+    blurRadius: Float = 40f,
     content: @Composable BoxScope.() -> Unit
 ) {
+    val blurModifier = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+        Modifier.graphicsLayer {
+            renderEffect = RenderEffect.createBlurEffect(
+                blurRadius, blurRadius, Shader.TileMode.CLAMP
+            ).asComposeRenderEffect()
+        }
+    } else {
+        Modifier
+    }
+
     Box(
         modifier = modifier
             .shadow(
@@ -48,21 +57,10 @@ fun GlassBox(
                 spotColor = shadowColor
             )
             .clip(shape)
+            .then(blurModifier)
             .background(Color.White.copy(alpha = glassAlpha), shape)
             .border(1.dp, Color.White.copy(alpha = borderAlpha), shape)
     ) {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-            Spacer(
-                modifier = Modifier
-                    .matchParentSize()
-                    .graphicsLayer {
-                        renderEffect = RenderEffect.createBlurEffect(
-                            blurRadius, blurRadius, Shader.TileMode.CLAMP
-                        ).asComposeRenderEffect()
-                    }
-                    .background(Color.White.copy(alpha = blurAlpha), shape)
-            )
-        }
         Box(
             modifier = Modifier.padding(contentPadding),
             content = content
