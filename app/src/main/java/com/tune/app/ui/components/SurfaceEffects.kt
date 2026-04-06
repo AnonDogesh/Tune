@@ -10,7 +10,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.matchParentSize
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.Composable
@@ -55,7 +55,7 @@ fun GlassBox(
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
             Spacer(
                 modifier = Modifier
-                    .matchParentSize()
+                    .fillMaxSize()
                     .graphicsLayer {
                         renderEffect = RenderEffect.createBlurEffect(
                             blurRadius, blurRadius, Shader.TileMode.CLAMP
@@ -66,13 +66,13 @@ fun GlassBox(
         // Layer 2: white tint on top of blur, below content
         Spacer(
             modifier = Modifier
-                .matchParentSize()
+                .fillMaxSize()
                 .background(Color.White.copy(alpha = glassAlpha), shape)
         )
         // Layer 3: actual content — completely unaffected by blur
         Box(
             modifier = Modifier
-                .matchParentSize()
+                .fillMaxSize()
                 .padding(contentPadding),
             content = content
         )
