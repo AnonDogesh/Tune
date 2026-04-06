@@ -9,13 +9,24 @@ import androidx.compose.ui.unit.sp
 val TuneTypography = Typography(
     headlineLarge = TextStyle(
         fontFamily = FontFamily.SansSerif,
-        fontWeight = FontWeight.SemiBold,
-        fontSize = 32.sp
+        fontWeight = FontWeight.Black,
+        fontSize = 32.sp,
+        letterSpacing = (-0.5).sp
+    ),
+    headlineMedium = TextStyle(
+        fontFamily = FontFamily.SansSerif,
+        fontWeight = FontWeight.Bold,
+        fontSize = 26.sp
     ),
     titleLarge = TextStyle(
         fontFamily = FontFamily.SansSerif,
+        fontWeight = FontWeight.Bold,
+        fontSize = 20.sp
+    ),
+    titleMedium = TextStyle(
+        fontFamily = FontFamily.SansSerif,
         fontWeight = FontWeight.SemiBold,
-        fontSize = 22.sp
+        fontSize = 16.sp
     ),
     bodyLarge = TextStyle(
         fontFamily = FontFamily.SansSerif,
@@ -28,7 +39,15 @@ val TuneTypography = Typography(
         fontSize = 14.sp
     ),
     labelLarge = TextStyle(
-        fontFamily = FontFamily.Monospace,
-        fontSize = 14.sp
+        fontFamily = FontFamily.SansSerif,
+        fontWeight = FontWeight.Medium,
+        fontSize = 14.sp,
+        letterSpacing = 0.5.sp
+    ),
+    labelSmall = TextStyle(
+        fontFamily = FontFamily.SansSerif,
+        fontWeight = FontWeight.Medium,
+        fontSize = 11.sp,
+        letterSpacing = 1.5.sp
     )
 )

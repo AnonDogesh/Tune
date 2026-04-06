@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.Composable
@@ -17,10 +18,12 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.graphics.asComposeRenderEffect
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.tune.app.ui.theme.OliveAccent
 
@@ -29,28 +32,41 @@ fun GlassBox(
     modifier: Modifier = Modifier,
     shape: Shape = RoundedCornerShape(24.dp),
     contentPadding: PaddingValues = PaddingValues(0.dp),
+    shadowElevation: Dp = 8.dp,
+    shadowColor: Color = Color(0x2A4A3480),
+    glassAlpha: Float = 0.62f,
+    borderAlpha: Float = 0.90f,
+    blurAlpha: Float = 0.0f,
+    blurRadius: Float = 40f,
     content: @Composable BoxScope.() -> Unit
 ) {
     Box(
         modifier = modifier
-            .shadow(elevation = 10.dp, shape = shape, spotColor = Color.Black.copy(alpha = 0.08f))
+            .shadow(
+                elevation = shadowElevation,
+                shape = shape,
+                ambientColor = shadowColor,
+                spotColor = shadowColor
+            )
             .clip(shape)
+            .background(Color.White.copy(alpha = glassAlpha))
+            .border(1.dp, Color.White.copy(alpha = borderAlpha), shape)
     ) {
-        Spacer(
-            modifier = Modifier
-                .matchParentSize()
-                .graphicsLayer {
-                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+        // Blur layer: clips to parent's already-clipped bounds,
+        // so no rectangle bleed. Renders behind content.
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            Spacer(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .graphicsLayer {
                         renderEffect = RenderEffect.createBlurEffect(
-                            20f,
-                            20f,
-                            Shader.TileMode.CLAMP
+                            blurRadius, blurRadius, Shader.TileMode.CLAMP
                         ).asComposeRenderEffect()
+                        alpha = 0.35f
                     }
-                }
-                .background(Color.White.copy(alpha = 0.15f), shape)
-                .border(0.6.dp, Color.White.copy(alpha = 0.5f), shape)
-        )
+            )
+        }
+        // Content layer: sharp, unaffected
         Box(
             modifier = Modifier.padding(contentPadding),
             content = content
@@ -63,25 +79,26 @@ fun ClaySurface(
     modifier: Modifier = Modifier,
     shape: Shape = RoundedCornerShape(20.dp),
     baseColor: Color,
+    brush: Brush? = null,
     content: @Composable BoxScope.() -> Unit
 ) {
+    val backgroundModifier = if (brush != null) {
+        Modifier.background(brush = brush, shape = shape)
+    } else {
+        Modifier.background(baseColor)
+    }
+
     Box(
         modifier = modifier
             .shadow(
-                elevation = 10.dp,
+                elevation = 12.dp,
                 shape = shape,
-                ambientColor = Color.Black.copy(alpha = 0.12f),
-                spotColor = Color.Black.copy(alpha = 0.16f)
-            )
-            .shadow(
-                elevation = 4.dp,
-                shape = shape,
-                ambientColor = Color.White.copy(alpha = 0.12f),
-                spotColor = Color.White.copy(alpha = 0.12f)
+                ambientColor = Color(0x284A3480),
+                spotColor = Color(0x384A3480)
             )
             .clip(shape)
-            .background(baseColor)
-            .border(2.dp, Color.White.copy(alpha = 0.2f), shape),
+            .then(backgroundModifier)
+            .border(2.dp, Color.White.copy(alpha = 0.30f), shape),
         contentAlignment = Alignment.Center,
         content = content
     )
@@ -93,12 +110,14 @@ fun ClayButton(
     modifier: Modifier = Modifier,
     shape: Shape = RoundedCornerShape(20.dp),
     baseColor: Color = OliveAccent,
+    brush: Brush? = null,
     content: @Composable BoxScope.() -> Unit
 ) {
     ClaySurface(
         modifier = modifier.clickable(onClick = onClick),
         shape = shape,
         baseColor = baseColor,
+        brush = brush,
         content = content
     )
 }

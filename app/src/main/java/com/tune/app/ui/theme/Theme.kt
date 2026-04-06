@@ -19,14 +19,17 @@ private val DarkScheme = darkColorScheme(
 )
 
 private val LightScheme = lightColorScheme(
-    primary = SeaGreen,
-    secondary = WarmOrange,
-    tertiary = CoralRed,
-    background = LightSurface,
-    surface = Color.White,
-    onPrimary = Color.White,
-    onBackground = DeepTeal,
-    onSurface = DeepTeal
+    primary = OliveAccent,
+    onPrimary = SurfaceWhite,
+    secondary = VioletAccent,
+    onSecondary = SurfaceWhite,
+    tertiary = OliveLight,
+    background = OffWhiteBackground,
+    onBackground = CharcoalText,
+    surface = GlassWhite,
+    onSurface = CharcoalText,
+    surfaceVariant = VioletMist,
+    outline = VioletPale
 )
 
 @Composable
