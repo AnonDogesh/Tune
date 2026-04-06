@@ -34,7 +34,7 @@ fun GlassBox(
     contentPadding: PaddingValues = PaddingValues(0.dp),
     shadowElevation: Dp = 8.dp,
     shadowColor: Color = Color(0x2A4A3480),
-    glassAlpha: Float = 0.45f,
+    glassAlpha: Float = 0.62f,
     borderAlpha: Float = 0.90f,
     blurAlpha: Float = 0.0f,
     blurRadius: Float = 40f,
@@ -49,9 +49,11 @@ fun GlassBox(
                 spotColor = shadowColor
             )
             .clip(shape)
+            .background(Color.White.copy(alpha = glassAlpha))
             .border(1.dp, Color.White.copy(alpha = borderAlpha), shape)
     ) {
-        // Layer 1: blur + tint — isolated, does not affect siblings
+        // Blur layer: clips to parent's already-clipped bounds,
+        // so no rectangle bleed. Renders behind content.
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
             Spacer(
                 modifier = Modifier
@@ -60,20 +62,13 @@ fun GlassBox(
                         renderEffect = RenderEffect.createBlurEffect(
                             blurRadius, blurRadius, Shader.TileMode.CLAMP
                         ).asComposeRenderEffect()
+                        alpha = 0.35f
                     }
             )
         }
-        // Layer 2: white tint on top of blur, below content
-        Spacer(
-            modifier = Modifier
-                .fillMaxSize()
-                .background(Color.White.copy(alpha = glassAlpha), shape)
-        )
-        // Layer 3: actual content — completely unaffected by blur
+        // Content layer: sharp, unaffected
         Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(contentPadding),
+            modifier = Modifier.padding(contentPadding),
             content = content
         )
     }

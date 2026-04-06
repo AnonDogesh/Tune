@@ -6,16 +6,18 @@ import androidx.compose.animation.core.spring
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideOutVertically
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.LibraryMusic
@@ -35,7 +37,9 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -61,7 +65,6 @@ import com.tune.app.ui.screens.SearchScreen
 import com.tune.app.ui.screens.SettingsScreen
 import com.tune.app.ui.screens.SplashScreen
 import com.tune.app.ui.components.ClayButton
-import com.tune.app.ui.components.GlassBox
 import com.tune.app.ui.state.TuneViewModel
 import com.tune.app.ui.theme.CharcoalText
 import com.tune.app.ui.theme.OffWhiteBackground
@@ -179,26 +182,47 @@ fun TuneApp() {
             }
 
             if (currentSong != null && current?.route != Destination.Splash.route && current?.route != Destination.NowPlaying.route) {
-                GlassBox(
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(74.dp)
+                        .align(Alignment.BottomCenter)
+                        .padding(bottom = 56.dp)
+                        .background(
+                            Brush.verticalGradient(
+                                colors = listOf(
+                                    Color.Transparent,
+                                    OffWhiteBackground.copy(alpha = 0.6f),
+                                    OffWhiteBackground.copy(alpha = 0.95f)
+                                )
+                            )
+                        )
+                )
+
+                Box(
                     modifier = Modifier
                         .align(Alignment.BottomCenter)
-                        .padding(start = 16.dp, end = 16.dp, bottom = 8.dp)
                         .fillMaxWidth()
-                        .height(72.dp)
-                        .alpha(1f)
-                        .clickable { navController.navigate(Destination.NowPlaying.route) },
-                    shadowElevation = 0.dp,
-                    shadowColor = Color.Transparent,
-                    glassAlpha = 0.30f,
-                    borderAlpha = 0.75f,
-                    blurAlpha = 0.30f,
-                    blurRadius = 36f,
-                    contentPadding = PaddingValues(horizontal = 12.dp, vertical = 0.dp)
+                        .height(64.dp)
+                        .padding(bottom = 56.dp)
+                        .shadow(
+                            elevation = 0.dp,
+                            shape = RoundedCornerShape(topStart = 20.dp, topEnd = 20.dp)
+                        )
+                        .clip(RoundedCornerShape(topStart = 20.dp, topEnd = 20.dp))
+                        .background(OffWhiteBackground.copy(alpha = 0.96f))
+                        .border(
+                            1.dp,
+                            Color.White.copy(alpha = 0.85f),
+                            RoundedCornerShape(topStart = 20.dp, topEnd = 20.dp)
+                        )
+                        .clickable { navController.navigate(Destination.NowPlaying.route) }
                 ) {
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .height(72.dp),
+                            .height(64.dp)
+                            .padding(horizontal = 12.dp),
                         verticalAlignment = Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.SpaceBetween
                     ) {
