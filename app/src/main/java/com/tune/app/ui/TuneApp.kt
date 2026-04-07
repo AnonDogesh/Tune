@@ -13,6 +13,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -39,7 +40,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -87,29 +87,7 @@ fun TuneApp() {
     )
 
     Scaffold(
-        containerColor = OffWhiteBackground,
-        bottomBar = {
-            val backStackEntry by navController.currentBackStackEntryAsState()
-            val current = backStackEntry?.destination
-            if (current?.route != Destination.Splash.route) {
-                NavigationBar(containerColor = Color.Transparent, tonalElevation = 0.dp) {
-                    items.forEach { (dest, icon, label) ->
-                        NavigationBarItem(
-                            selected = current?.hierarchy?.any { it.route == dest.route } == true,
-                            onClick = {
-                                navController.navigate(dest.route) {
-                                    popUpTo(navController.graph.findStartDestination().id) { saveState = true }
-                                    launchSingleTop = true
-                                    restoreState = true
-                                }
-                            },
-                            icon = { Icon(icon, contentDescription = label, tint = CharcoalText) },
-                            label = { Text(label, color = VioletAccent) }
-                        )
-                    }
-                }
-            }
-        }
+        containerColor = OffWhiteBackground
     ) { innerPadding ->
         Box(Modifier.padding(innerPadding)) {
             val backStackEntry by navController.currentBackStackEntryAsState()
@@ -181,75 +159,81 @@ fun TuneApp() {
                 }
             }
 
-            if (currentSong != null && current?.route != Destination.Splash.route && current?.route != Destination.NowPlaying.route) {
-                Box(
+            if (current?.route != Destination.Splash.route) {
+                Column(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .height(74.dp)
                         .align(Alignment.BottomCenter)
-                        .padding(bottom = 56.dp)
-                        .background(
-                            Brush.verticalGradient(
-                                colors = listOf(
-                                    Color.Transparent,
-                                    OffWhiteBackground.copy(alpha = 0.6f),
-                                    OffWhiteBackground.copy(alpha = 0.95f)
-                                )
-                            )
-                        )
-                )
-
-                Box(
-                    modifier = Modifier
-                        .align(Alignment.BottomCenter)
-                        .fillMaxWidth()
-                        .height(64.dp)
-                        .padding(bottom = 56.dp)
-                        .shadow(
-                            elevation = 0.dp,
-                            shape = RoundedCornerShape(topStart = 20.dp, topEnd = 20.dp)
-                        )
-                        .clip(RoundedCornerShape(topStart = 20.dp, topEnd = 20.dp))
-                        .background(OffWhiteBackground.copy(alpha = 0.96f))
-                        .border(
-                            1.dp,
-                            Color.White.copy(alpha = 0.85f),
-                            RoundedCornerShape(topStart = 20.dp, topEnd = 20.dp)
-                        )
-                        .clickable { navController.navigate(Destination.NowPlaying.route) }
                 ) {
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(64.dp)
-                            .padding(horizontal = 12.dp),
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.SpaceBetween
-                    ) {
-                        Column(Modifier.weight(1f)) {
-                            Text(
-                                currentSong?.title.orEmpty(),
-                                maxLines = 1,
-                                overflow = TextOverflow.Ellipsis,
-                                color = CharcoalText
-                            )
-                            Text(
-                                currentSong?.artist.orEmpty(),
-                                maxLines = 1,
-                                overflow = TextOverflow.Ellipsis,
-                                color = VioletAccent
-                            )
-                        }
-                        Row(verticalAlignment = Alignment.CenterVertically) {
-                            IconButton(onClick = vm::previousSong) { Icon(Icons.Default.SkipPrevious, null, tint = VioletAccent) }
-                            ClayButton(
-                                onClick = vm::togglePlayPause,
-                                modifier = Modifier.size(42.dp),
-                                baseColor = OliveAccent
+                    if (currentSong != null && current.route != Destination.NowPlaying.route) {
+                        Box(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(68.dp)
+                                .shadow(
+                                    elevation = 0.dp,
+                                    shape = RoundedCornerShape(topStart = 20.dp, topEnd = 20.dp)
+                                )
+                                .clip(RoundedCornerShape(topStart = 20.dp, topEnd = 20.dp))
+                                .background(OffWhiteBackground.copy(alpha = 0.97f))
+                                .border(
+                                    width = 1.dp,
+                                    color = Color.White.copy(alpha = 0.85f),
+                                    shape = RoundedCornerShape(topStart = 20.dp, topEnd = 20.dp)
+                                )
+                                .clickable { navController.navigate(Destination.NowPlaying.route) }
+                        ) {
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .fillMaxHeight()
+                                    .padding(horizontal = 14.dp),
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.SpaceBetween
                             ) {
-                                Icon(if (isPlaying) Icons.Default.Pause else Icons.Default.PlayArrow, null, tint = Color.White)
+                                Column(Modifier.weight(1f)) {
+                                    Text(
+                                        currentSong?.title.orEmpty(),
+                                        maxLines = 1,
+                                        overflow = TextOverflow.Ellipsis,
+                                        color = CharcoalText
+                                    )
+                                    Text(
+                                        currentSong?.artist.orEmpty(),
+                                        maxLines = 1,
+                                        overflow = TextOverflow.Ellipsis,
+                                        color = VioletAccent
+                                    )
+                                }
+                                Row(verticalAlignment = Alignment.CenterVertically) {
+                                    IconButton(onClick = vm::previousSong) { Icon(Icons.Default.SkipPrevious, null, tint = VioletAccent) }
+                                    ClayButton(
+                                        onClick = vm::togglePlayPause,
+                                        modifier = Modifier.size(42.dp),
+                                        baseColor = OliveAccent
+                                    ) {
+                                        Icon(if (isPlaying) Icons.Default.Pause else Icons.Default.PlayArrow, null, tint = Color.White)
+                                    }
+                                    IconButton(onClick = vm::nextSong) { Icon(Icons.Default.SkipNext, null, tint = VioletAccent) }
+                                }
                             }
-                            IconButton(onClick = vm::nextSong) { Icon(Icons.Default.SkipNext, null, tint = VioletAccent) }
+                        }
+                    }
+
+                    NavigationBar(containerColor = Color.Transparent, tonalElevation = 0.dp) {
+                        items.forEach { (dest, icon, label) ->
+                            NavigationBarItem(
+                                selected = current?.hierarchy?.any { it.route == dest.route } == true,
+                                onClick = {
+                                    navController.navigate(dest.route) {
+                                        popUpTo(navController.graph.findStartDestination().id) { saveState = true }
+                                        launchSingleTop = true
+                                        restoreState = true
+                                    }
+                                },
+                                icon = { Icon(icon, contentDescription = label, tint = CharcoalText) },
+                                label = { Text(label, color = VioletAccent) }
+                            )
                         }
                     }
                 }
