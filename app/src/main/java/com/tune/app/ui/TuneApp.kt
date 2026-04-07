@@ -165,7 +165,7 @@ fun TuneApp() {
                         .fillMaxWidth()
                         .align(Alignment.BottomCenter)
                 ) {
-                    if (currentSong != null && current.route != Destination.NowPlaying.route) {
+                    if (currentSong != null && current?.route != Destination.NowPlaying.route) {
                         Box(
                             modifier = Modifier
                                 .fillMaxWidth()
