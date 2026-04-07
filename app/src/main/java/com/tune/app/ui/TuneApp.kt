@@ -3,8 +3,10 @@ package com.tune.app.ui
 import androidx.compose.animation.AnimatedContentTransitionScope
 import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.spring
+import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
+import androidx.compose.animation.scaleIn
 import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -112,13 +114,22 @@ fun TuneApp() {
                 ) {
                     HomeScreen(vm = vm, onNowPlaying = { navController.navigate(Destination.NowPlaying.route) }, onArtist = {}, onAlbum = {})
                 }
-                composable(Destination.NowPlaying.route) { NowPlayingScreen(vm = vm, onBack = { navController.popBackStack() }) }
+                composable(
+                    Destination.NowPlaying.route,
+                    enterTransition = {
+                        scaleIn(
+                            initialScale = 0.92f,
+                            animationSpec = tween(durationMillis = 300)
+                        ) + fadeIn(animationSpec = tween(durationMillis = 260))
+                    }
+                ) { NowPlayingScreen(vm = vm, onBack = { navController.popBackStack() }) }
                 composable(Destination.Playlists.route) { PlaylistsScreen(vm = vm) }
                 composable(Destination.Search.route) {
                     SearchScreen(
                         vm = vm,
                         onNowPlaying = { navController.navigate(Destination.NowPlaying.route) },
-                        onArtist = { artist -> navController.navigate(Destination.Artist.createRoute(artist)) }
+                        onArtist = { artist -> navController.navigate(Destination.Artist.createRoute(artist)) },
+                        onAlbum = { album -> navController.navigate(Destination.Album.createRoute(album)) }
                     )
                 }
                 composable(
@@ -137,7 +148,22 @@ fun TuneApp() {
                         }
                     )
                 }
-                composable(Destination.Album.route) { AlbumScreen() }
+                composable(
+                    route = Destination.Album.route,
+                    arguments = listOf(navArgument(Destination.Album.ARG_ALBUM) { defaultValue = "" })
+                ) { backStack ->
+                    val albumName = backStack.arguments?.getString(Destination.Album.ARG_ALBUM).orEmpty()
+                    AlbumScreen(
+                        albumName = albumName,
+                        songs = songs,
+                        currentSongId = currentSong?.id,
+                        onBack = { navController.popBackStack() },
+                        onPlaySong = {
+                            vm.playSongFromLibrary(it)
+                            navController.navigate(Destination.NowPlaying.route)
+                        }
+                    )
+                }
                 composable(Destination.Settings.route) {
                     SettingsScreen(
                         onEqualizer = { navController.navigate(Destination.SettingsEqualizer.route) },
@@ -159,7 +185,7 @@ fun TuneApp() {
                 }
             }
 
-            if (current?.route != Destination.Splash.route) {
+            if (current?.route != Destination.Splash.route && current?.route != Destination.NowPlaying.route) {
                 Column(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -220,7 +246,11 @@ fun TuneApp() {
                         }
                     }
 
-                    NavigationBar(containerColor = Color.Transparent, tonalElevation = 0.dp) {
+                    NavigationBar(
+                        containerColor = OffWhiteBackground.copy(alpha = 0.97f),
+                        tonalElevation = 0.dp,
+                        modifier = Modifier.border(1.dp, Color.White.copy(alpha = 0.85f))
+                    ) {
                         items.forEach { (dest, icon, label) ->
                             NavigationBarItem(
                                 selected = current?.hierarchy?.any { it.route == dest.route } == true,

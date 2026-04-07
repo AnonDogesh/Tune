@@ -48,7 +48,12 @@ import com.tune.app.ui.theme.VioletAccent
 import com.tune.app.ui.theme.VioletPale
 
 @Composable
-fun SearchScreen(vm: TuneViewModel, onNowPlaying: () -> Unit, onArtist: (String) -> Unit) {
+fun SearchScreen(
+    vm: TuneViewModel,
+    onNowPlaying: () -> Unit,
+    onArtist: (String) -> Unit,
+    onAlbum: (String) -> Unit
+) {
     val songs by vm.songs.collectAsStateWithLifecycle()
     val query by vm.searchQuery.collectAsStateWithLifecycle()
     val currentSong by vm.currentSong.collectAsStateWithLifecycle()
@@ -125,16 +130,16 @@ fun SearchScreen(vm: TuneViewModel, onNowPlaying: () -> Unit, onArtist: (String)
                 if (hasQuery && artistResults.isNotEmpty()) {
                     item { SectionHeader("Artists") }
                     items(artistResults) { artist ->
-                        ResultRow(title = artist, subtitle = "Artist", onClick = { onArtist(artist) })
+                        val art = songs.firstOrNull { it.artist.equals(artist, ignoreCase = true) }?.albumArtUri
+                        ResultRow(title = artist, subtitle = "Artist", art = art, onClick = { onArtist(artist) })
                     }
                 }
 
                 if (hasQuery && albumResults.isNotEmpty()) {
                     item { SectionHeader("Albums") }
                     items(albumResults) { album ->
-                        val art = songs.firstOrNull { it.album == album }?.albumArtUri
-                        val albumArtist = songs.firstOrNull { it.album == album }?.artist.orEmpty()
-                        ResultRow(title = album, subtitle = "Album", art = art, onClick = { onArtist(albumArtist) })
+                        val art = songs.firstOrNull { it.album.equals(album, ignoreCase = true) }?.albumArtUri
+                        ResultRow(title = album, subtitle = "Album", art = art, onClick = { onAlbum(album) })
                     }
                 }
 
