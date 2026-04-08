@@ -303,7 +303,7 @@ fun NowPlayingScreen(vm: TuneViewModel, onBack: () -> Unit) {
                 shape = RoundedCornerShape(28.dp),
                 contentPadding = PaddingValues(18.dp),
                 shadowElevation = 0.dp,
-                glassAlpha = 0.55f,
+                glassAlpha = 0.9f,
                 blurAlpha = 0.2f,
                 blurRadius = 24f
             ) {

@@ -155,7 +155,8 @@ fun SettingsScreen(
             GlassBox(
                 modifier = Modifier.fillMaxWidth(0.95f),
                 shape = RoundedCornerShape(28.dp),
-                contentPadding = PaddingValues(18.dp)
+                contentPadding = PaddingValues(18.dp),
+                glassAlpha = 0.9f
             ) {
                 Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
                     Text("Exclude Folders", color = CharcoalText, style = MaterialTheme.typography.titleLarge)
@@ -176,7 +177,7 @@ fun SettingsScreen(
                             Row(
                                 modifier = Modifier
                                     .fillMaxWidth()
-                                    .background(Color.White.copy(alpha = 0.42f), RoundedCornerShape(16.dp))
+                                    .background(Color.White.copy(alpha = 0.82f), RoundedCornerShape(16.dp))
                                     .padding(horizontal = 12.dp, vertical = 10.dp)
                                     .clickable {
                                         if (selected) includedFolders.remove(folder) else includedFolders.add(folder)

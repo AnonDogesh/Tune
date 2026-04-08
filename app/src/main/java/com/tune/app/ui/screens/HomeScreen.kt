@@ -30,11 +30,10 @@ import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.DropdownMenu
-import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -55,6 +54,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.window.Dialog
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil.compose.AsyncImage
@@ -256,7 +256,8 @@ fun HomeScreen(
                 item { Text("No songs found yet. Grant permission and refresh.", color = MutedGreyText) }
             } else {
                 items(songs) { song ->
-                    var expanded by remember(song.id) { mutableStateOf(false) }
+                    var showRemovePopup by remember(song.id) { mutableStateOf(false) }
+                    var showConfirmRemove by remember(song.id) { mutableStateOf(false) }
                     val rowShape = RoundedCornerShape(28.dp)
                     Card(
                         modifier = Modifier
@@ -298,15 +299,73 @@ fun HomeScreen(
                                     Text(song.artist, maxLines = 1, overflow = TextOverflow.Ellipsis, style = MaterialTheme.typography.bodyMedium, color = OliveAccent)
                                 }
                                 Text(song.duration, style = MaterialTheme.typography.labelLarge, color = MutedGreyText)
-                                Box {
-                                    IconButton(onClick = { expanded = true }) {
-                                        Icon(Icons.Default.MoreVert, contentDescription = null, tint = MutedGreyText)
+                                IconButton(onClick = { showRemovePopup = true }) {
+                                    Icon(Icons.Default.MoreVert, contentDescription = null, tint = MutedGreyText)
+                                }
+                            }
+                        }
+                    }
+
+                    if (showRemovePopup) {
+                        Dialog(onDismissRequest = { showRemovePopup = false }) {
+                            Box(
+                                modifier = Modifier
+                                    .fillMaxWidth(0.9f)
+                                    .clip(RoundedCornerShape(topStart = 20.dp, topEnd = 20.dp))
+                                    .background(OffWhiteBackground.copy(alpha = 0.97f))
+                                    .border(
+                                        width = 1.dp,
+                                        color = Color.White.copy(alpha = 0.85f),
+                                        shape = RoundedCornerShape(topStart = 20.dp, topEnd = 20.dp)
+                                    )
+                                    .clickable {
+                                        showRemovePopup = false
+                                        showConfirmRemove = true
                                     }
-                                    DropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
-                                        DropdownMenuItem(text = { Text("Remove from app library") }, onClick = {
-                                            vm.removeSongFromLibrary(song.id)
-                                            expanded = false
-                                        })
+                                    .padding(horizontal = 16.dp, vertical = 14.dp)
+                            ) {
+                                Text("Remove from app library", color = CharcoalText, style = MaterialTheme.typography.titleMedium)
+                            }
+                        }
+                    }
+
+                    if (showConfirmRemove) {
+                        Dialog(onDismissRequest = { showConfirmRemove = false }) {
+                            Box(
+                                modifier = Modifier
+                                    .fillMaxWidth(0.92f)
+                                    .clip(RoundedCornerShape(topStart = 20.dp, topEnd = 20.dp))
+                                    .background(OffWhiteBackground.copy(alpha = 0.97f))
+                                    .border(
+                                        width = 1.dp,
+                                        color = Color.White.copy(alpha = 0.85f),
+                                        shape = RoundedCornerShape(topStart = 20.dp, topEnd = 20.dp)
+                                    )
+                                    .padding(16.dp)
+                            ) {
+                                Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                                    Text("Remove song?", color = CharcoalText, style = MaterialTheme.typography.titleLarge)
+                                    Text(
+                                        "This song will be hidden from your app library.",
+                                        color = MutedGreyText,
+                                        style = MaterialTheme.typography.bodyMedium
+                                    )
+                                    Row(
+                                        modifier = Modifier.fillMaxWidth(),
+                                        horizontalArrangement = Arrangement.End
+                                    ) {
+                                        OutlinedButton(onClick = { showConfirmRemove = false }) {
+                                            Text("Cancel")
+                                        }
+                                        Button(
+                                            onClick = {
+                                                vm.removeSongFromLibrary(song.id)
+                                                showConfirmRemove = false
+                                            },
+                                            modifier = Modifier.padding(start = 8.dp)
+                                        ) {
+                                            Text("Remove")
+                                        }
                                     }
                                 }
                             }
