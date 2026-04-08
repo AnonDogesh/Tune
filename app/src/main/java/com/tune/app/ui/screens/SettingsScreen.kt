@@ -9,30 +9,46 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Bedtime
+import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.ChevronRight
 import androidx.compose.material.icons.filled.Equalizer
 import androidx.compose.material.icons.filled.Folder
 import androidx.compose.material.icons.filled.FolderOff
 import androidx.compose.material.icons.filled.Storage
+import androidx.compose.material3.Button
+import androidx.compose.material3.Checkbox
+import androidx.compose.material3.CheckboxDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateListOf
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.window.Dialog
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.tune.app.ui.components.ClaySurface
 import com.tune.app.ui.components.GlassBox
+import com.tune.app.ui.state.TuneViewModel
 import com.tune.app.ui.theme.CharcoalText
 import com.tune.app.ui.theme.GlassWhite
 import com.tune.app.ui.theme.MutedGreyText
@@ -49,10 +65,16 @@ import com.tune.app.ui.theme.VioletPale
 
 @Composable
 fun SettingsScreen(
+    vm: TuneViewModel,
     onEqualizer: () -> Unit,
     onScanMusic: () -> Unit,
     onScanProgress: () -> Unit
 ) {
+    val folders by vm.libraryFolders.collectAsStateWithLifecycle()
+    val excludedFolders by vm.excludedLibraryFolders.collectAsStateWithLifecycle()
+    val visibleSizeBytes by vm.visibleAudioSizeBytes.collectAsStateWithLifecycle()
+    var showExcludeFolders by remember { mutableStateOf(false) }
+
     Box(Modifier.fillMaxSize().background(OffWhiteBackground)) {
         Box(
             modifier = Modifier
@@ -84,8 +106,18 @@ fun SettingsScreen(
 
         SectionTitle("LIBRARY")
         SettingRow("Scan Music Folder", icon = { Icon(Icons.Default.Folder, null, tint = Color.White) }, onClick = onScanMusic)
-        SettingRow("Exclude Folders", subtitle = "Configure folders to ignore", icon = { Icon(Icons.Default.FolderOff, null, tint = Color.White) }, onClick = {})
-        SettingRow("Manage Storage", subtitle = "12.4 GB", icon = { Icon(Icons.Default.Storage, null, tint = Color.White) }, onClick = onScanProgress)
+        SettingRow(
+            "Exclude Folders",
+            subtitle = "Configure folders to ignore",
+            icon = { Icon(Icons.Default.FolderOff, null, tint = Color.White) },
+            onClick = { showExcludeFolders = true }
+        )
+        SettingRow(
+            "Manage Storage",
+            subtitle = formatStorage(visibleSizeBytes),
+            icon = { Icon(Icons.Default.Storage, null, tint = Color.White) },
+            onClick = onScanProgress
+        )
 
         SectionTitle("PERSONALIZATION")
         SettingRow("Sleep Timer", subtitle = "Off", icon = { Icon(Icons.Default.Bedtime, null, tint = Color.White) }, onClick = {})
@@ -112,6 +144,94 @@ fun SettingsScreen(
             }
         }
     }
+    }
+
+    if (showExcludeFolders) {
+        val includedFolders = remember(folders, excludedFolders) {
+            mutableStateListOf(*folders.filterNot { it in excludedFolders }.toTypedArray())
+        }
+
+        Dialog(onDismissRequest = { showExcludeFolders = false }) {
+            GlassBox(
+                modifier = Modifier.fillMaxWidth(0.95f),
+                shape = RoundedCornerShape(28.dp),
+                contentPadding = PaddingValues(18.dp)
+            ) {
+                Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                    Text("Exclude Folders", color = CharcoalText, style = MaterialTheme.typography.titleLarge)
+                    Text(
+                        "Untick folders you want hidden from library.",
+                        color = MutedGreyText,
+                        style = MaterialTheme.typography.bodyMedium
+                    )
+
+                    LazyColumn(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .heightIn(max = 360.dp),
+                        verticalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        items(folders) { folder ->
+                            val selected = folder in includedFolders
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .background(Color.White.copy(alpha = 0.42f), RoundedCornerShape(16.dp))
+                                    .padding(horizontal = 12.dp, vertical = 10.dp)
+                                    .clickable {
+                                        if (selected) includedFolders.remove(folder) else includedFolders.add(folder)
+                                    },
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Column(Modifier.weight(1f)) {
+                                    Text(folder.substringAfterLast('/'), color = CharcoalText, style = MaterialTheme.typography.titleMedium)
+                                    Text(folder, color = MutedGreyText, style = MaterialTheme.typography.bodySmall)
+                                }
+                                Checkbox(
+                                    checked = selected,
+                                    onCheckedChange = { checked ->
+                                        if (checked) includedFolders.add(folder) else includedFolders.remove(folder)
+                                    },
+                                    colors = CheckboxDefaults.colors(checkedColor = OliveAccent)
+                                )
+                            }
+                        }
+                    }
+
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.End
+                    ) {
+                        OutlinedButton(onClick = { showExcludeFolders = false }) {
+                            Text("Cancel")
+                        }
+                        Button(
+                            onClick = {
+                                vm.setExcludedFolders((folders - includedFolders.toSet()).toSet())
+                                showExcludeFolders = false
+                            },
+                            modifier = Modifier.padding(start = 10.dp)
+                        ) {
+                            Icon(Icons.Default.Check, contentDescription = null, modifier = Modifier.padding(end = 6.dp))
+                            Text("Save")
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+private fun formatStorage(bytes: Long): String {
+    if (bytes <= 0L) return "0 B"
+    val kb = 1024.0
+    val mb = kb * 1024
+    val gb = mb * 1024
+    return when {
+        bytes >= gb -> String.format("%.2f GB", bytes / gb)
+        bytes >= mb -> String.format("%.1f MB", bytes / mb)
+        bytes >= kb -> String.format("%.1f KB", bytes / kb)
+        else -> "$bytes B"
     }
 }
 

@@ -29,6 +29,8 @@ class LibraryRepository @Inject constructor(
             MediaStore.Audio.Media.ALBUM,
             MediaStore.Audio.Media.DURATION,
             MediaStore.Audio.Media.ALBUM_ID,
+            MediaStore.Audio.Media.RELATIVE_PATH,
+            MediaStore.Audio.Media.SIZE,
             MediaStore.Audio.Media.IS_MUSIC
         )
         val selection = "${MediaStore.Audio.Media.IS_MUSIC} != 0"
@@ -41,6 +43,8 @@ class LibraryRepository @Inject constructor(
             val albumCol = cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.ALBUM)
             val durationCol = cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.DURATION)
             val albumIdCol = cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.ALBUM_ID)
+            val relativePathCol = cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.RELATIVE_PATH)
+            val sizeCol = cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.SIZE)
 
             while (cursor.moveToNext()) {
                 val id = cursor.getLong(idCol)
@@ -49,6 +53,8 @@ class LibraryRepository @Inject constructor(
                 val album = cursor.getString(albumCol) ?: "Unknown Album"
                 val durationMs = cursor.getLong(durationCol)
                 val albumId = cursor.getLong(albumIdCol)
+                val folderPath = cursor.getString(relativePathCol)?.trim('/').orEmpty()
+                val sizeBytes = cursor.getLong(sizeCol)
                 val songUri = ContentUris.withAppendedId(collection, id).toString()
                 val albumArtUri = ContentUris.withAppendedId(MediaStore.Audio.Albums.EXTERNAL_CONTENT_URI, albumId).toString()
 
@@ -59,7 +65,9 @@ class LibraryRepository @Inject constructor(
                     album = album,
                     duration = formatDuration(durationMs),
                     path = songUri,
-                    albumArtUri = albumArtUri
+                    albumArtUri = albumArtUri,
+                    folderPath = folderPath,
+                    sizeBytes = sizeBytes
                 )
             }
         }

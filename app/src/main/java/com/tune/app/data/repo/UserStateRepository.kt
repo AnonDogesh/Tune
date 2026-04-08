@@ -65,10 +65,23 @@ class UserStateRepository @Inject constructor(
         prefs.edit().putString(KEY_HIDDEN, values.joinToString(",")).apply()
     }
 
+    fun loadExcludedFolders(): Set<String> =
+        prefs.getString(KEY_EXCLUDED_FOLDERS, "")
+            ?.split('|')
+            ?.map { it.trim() }
+            ?.filter { it.isNotBlank() }
+            ?.toSet()
+            ?: emptySet()
+
+    fun saveExcludedFolders(values: Set<String>) {
+        prefs.edit().putString(KEY_EXCLUDED_FOLDERS, values.joinToString("|")).apply()
+    }
+
     companion object {
         private const val KEY_CUSTOM_PLAYLISTS = "custom_playlists"
         private const val KEY_PLAYLIST_SONGS = "playlist_songs"
         private const val KEY_FAVORITES = "favorites"
         private const val KEY_HIDDEN = "hidden_songs"
+        private const val KEY_EXCLUDED_FOLDERS = "excluded_folders"
     }
 }

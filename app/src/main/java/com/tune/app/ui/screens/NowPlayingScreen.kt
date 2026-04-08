@@ -163,10 +163,40 @@ fun NowPlayingScreen(vm: TuneViewModel, onBack: () -> Unit) {
             }
 
             item {
-                Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxWidth()) {
-                    Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.weight(1f)) {
-                        Text(currentSong?.title ?: "Pick a song", maxLines = 1, overflow = TextOverflow.Ellipsis, color = CharcoalText, style = MaterialTheme.typography.headlineLarge)
-                        Text(currentSong?.artist ?: "Unknown Artist", maxLines = 1, overflow = TextOverflow.Ellipsis, color = OliveAccent, style = MaterialTheme.typography.titleLarge)
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(68.dp)
+                        .clip(RoundedCornerShape(topStart = 20.dp, topEnd = 20.dp))
+                        .background(OffWhiteBackground.copy(alpha = 0.97f))
+                        .border(
+                            width = 1.dp,
+                            color = Color.White.copy(alpha = 0.85f),
+                            shape = RoundedCornerShape(topStart = 20.dp, topEnd = 20.dp)
+                        )
+                ) {
+                    Row(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .padding(horizontal = 14.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Column(Modifier.weight(1f)) {
+                            Text(
+                                currentSong?.title ?: "Pick a song",
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis,
+                                color = CharcoalText,
+                                style = MaterialTheme.typography.titleLarge
+                            )
+                            Text(
+                                currentSong?.artist ?: "Unknown Artist",
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis,
+                                color = VioletAccent,
+                                style = MaterialTheme.typography.bodyLarge
+                            )
+                        }
                     }
                 }
             }

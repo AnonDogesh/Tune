@@ -166,6 +166,7 @@ fun TuneApp() {
                 }
                 composable(Destination.Settings.route) {
                     SettingsScreen(
+                        vm = vm,
                         onEqualizer = { navController.navigate(Destination.SettingsEqualizer.route) },
                         onScanMusic = { navController.navigate(Destination.SettingsScanMusic.route) },
                         onScanProgress = { navController.navigate(Destination.SettingsScanProgress.route) }

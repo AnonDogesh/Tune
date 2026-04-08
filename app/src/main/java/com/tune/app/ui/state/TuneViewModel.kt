@@ -33,6 +33,7 @@ class TuneViewModel @Inject constructor(
     private val playlistSongs = MutableStateFlow(userState.loadPlaylistSongs())
     private val favoriteSongIds = MutableStateFlow(userState.loadFavorites())
     private val hiddenSongIds = MutableStateFlow(userState.loadHiddenSongs())
+    private val excludedFolders = MutableStateFlow(userState.loadExcludedFolders())
 
     private val nowPlayingSong = MutableStateFlow<Song?>(null)
     private val activeQueue = MutableStateFlow<List<Song>>(emptyList())
@@ -43,9 +44,26 @@ class TuneViewModel @Inject constructor(
 
     private val rawSongs: StateFlow<List<Song>> = repository.observeSongs().stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
-    val songs: StateFlow<List<Song>> = combine(rawSongs, hiddenSongIds) { all, hidden ->
-        all.filterNot { it.id in hidden }
+    val songs: StateFlow<List<Song>> = combine(rawSongs, hiddenSongIds, excludedFolders) { all, hidden, excluded ->
+        all.filterNot { song ->
+            song.id in hidden || (song.folderPath.isNotBlank() && song.folderPath in excluded)
+        }
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+
+    val libraryFolders: StateFlow<List<String>> = rawSongs
+        .combine(excludedFolders) { all, _ ->
+            all.map { it.folderPath.trim() }
+                .filter { it.isNotBlank() }
+                .distinct()
+                .sorted()
+        }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+
+    val excludedLibraryFolders: StateFlow<Set<String>> = excludedFolders
+
+    val visibleAudioSizeBytes: StateFlow<Long> = songs
+        .combine(excludedFolders) { visibleSongs, _ -> visibleSongs.sumOf { it.sizeBytes } }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), 0L)
 
     val filteredSongs: StateFlow<List<Song>> = combine(songs, query) { allSongs, q ->
         if (q.isBlank()) allSongs else allSongs.filter {
@@ -210,6 +228,11 @@ class TuneViewModel @Inject constructor(
         userState.saveHiddenSongs(hiddenSongIds.value)
         activeQueue.update { it.filterNot { song -> song.id == songId } }
         if (nowPlayingSong.value?.id == songId) nextSong()
+    }
+
+    fun setExcludedFolders(folders: Set<String>) {
+        excludedFolders.value = folders
+        userState.saveExcludedFolders(folders)
     }
 
     fun toggleShuffle() { shuffleEnabled.update { !it } }
