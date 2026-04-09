@@ -13,9 +13,11 @@ import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Bedtime
@@ -76,6 +78,7 @@ fun SettingsScreen(
     var showExcludeFolders by remember { mutableStateOf(false) }
 
     Box(Modifier.fillMaxSize().background(OffWhiteBackground)) {
+        val scrollState = rememberScrollState()
         Box(
             modifier = Modifier
                 .size(300.dp)
@@ -88,12 +91,13 @@ fun SettingsScreen(
                 .offset(x = 180.dp, y = 200.dp)
                 .background(Brush.radialGradient(listOf(OlivePale.copy(alpha = 0.4f), Color.Transparent)), CircleShape)
         )
-    Column(
-        Modifier
-            .fillMaxSize()
-            .padding(top = 16.dp),
-        verticalArrangement = Arrangement.spacedBy(18.dp)
-    ) {
+        Column(
+            Modifier
+                .fillMaxSize()
+                .verticalScroll(scrollState)
+                .padding(top = 16.dp, bottom = 24.dp),
+            verticalArrangement = Arrangement.spacedBy(18.dp)
+        ) {
         Text(
             "Settings",
             style = MaterialTheme.typography.headlineLarge,
@@ -143,7 +147,7 @@ fun SettingsScreen(
                 Text("Designed and developed with passion\nfor high-fidelity audio.", color = MutedGreyText, style = MaterialTheme.typography.bodyLarge)
             }
         }
-    }
+        }
     }
 
     if (showExcludeFolders) {

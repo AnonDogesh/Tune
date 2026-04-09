@@ -30,6 +30,8 @@ import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -299,32 +301,25 @@ fun HomeScreen(
                                     Text(song.artist, maxLines = 1, overflow = TextOverflow.Ellipsis, style = MaterialTheme.typography.bodyMedium, color = OliveAccent)
                                 }
                                 Text(song.duration, style = MaterialTheme.typography.labelLarge, color = MutedGreyText)
-                                IconButton(onClick = { showRemovePopup = true }) {
-                                    Icon(Icons.Default.MoreVert, contentDescription = null, tint = MutedGreyText)
-                                }
-                            }
-                        }
-                    }
-
-                    if (showRemovePopup) {
-                        Dialog(onDismissRequest = { showRemovePopup = false }) {
-                            Box(
-                                modifier = Modifier
-                                    .fillMaxWidth(0.9f)
-                                    .clip(RoundedCornerShape(topStart = 20.dp, topEnd = 20.dp))
-                                    .background(OffWhiteBackground.copy(alpha = 0.97f))
-                                    .border(
-                                        width = 1.dp,
-                                        color = Color.White.copy(alpha = 0.85f),
-                                        shape = RoundedCornerShape(topStart = 20.dp, topEnd = 20.dp)
-                                    )
-                                    .clickable {
-                                        showRemovePopup = false
-                                        showConfirmRemove = true
+                                Box {
+                                    IconButton(onClick = { showRemovePopup = true }) {
+                                        Icon(Icons.Default.MoreVert, contentDescription = null, tint = MutedGreyText)
                                     }
-                                    .padding(horizontal = 16.dp, vertical = 14.dp)
-                            ) {
-                                Text("Remove from app library", color = CharcoalText, style = MaterialTheme.typography.titleMedium)
+                                    DropdownMenu(
+                                        expanded = showRemovePopup,
+                                        onDismissRequest = { showRemovePopup = false },
+                                        shape = RoundedCornerShape(16.dp),
+                                        containerColor = OffWhiteBackground.copy(alpha = 0.98f)
+                                    ) {
+                                        DropdownMenuItem(
+                                            text = { Text("Remove from app library", color = CharcoalText) },
+                                            onClick = {
+                                                showRemovePopup = false
+                                                showConfirmRemove = true
+                                            }
+                                        )
+                                    }
+                                }
                             }
                         }
                     }
@@ -334,12 +329,12 @@ fun HomeScreen(
                             Box(
                                 modifier = Modifier
                                     .fillMaxWidth(0.92f)
-                                    .clip(RoundedCornerShape(topStart = 20.dp, topEnd = 20.dp))
+                                    .clip(RoundedCornerShape(20.dp))
                                     .background(OffWhiteBackground.copy(alpha = 0.97f))
                                     .border(
                                         width = 1.dp,
                                         color = Color.White.copy(alpha = 0.85f),
-                                        shape = RoundedCornerShape(topStart = 20.dp, topEnd = 20.dp)
+                                        shape = RoundedCornerShape(20.dp)
                                     )
                                     .padding(16.dp)
                             ) {
