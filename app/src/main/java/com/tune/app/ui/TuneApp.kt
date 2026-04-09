@@ -173,7 +173,7 @@ fun TuneApp() {
                     )
                 }
                 composable(Destination.SettingsEqualizer.route) {
-                    EqualizerScreen(onBack = { navController.popBackStack() })
+                    EqualizerScreen(vm = vm, onBack = { navController.popBackStack() })
                 }
                 composable(Destination.SettingsScanMusic.route) {
                     ScanMusicScreen(

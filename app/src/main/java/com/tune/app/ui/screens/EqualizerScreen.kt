@@ -1,15 +1,20 @@
 package com.tune.app.ui.screens
 
-import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -22,77 +27,140 @@ import androidx.compose.material3.Slider
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableFloatStateOf
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.unit.dp
-import com.tune.app.ui.theme.DeepTeal
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.tune.app.ui.components.ClaySurface
+import com.tune.app.ui.components.GlassBox
+import com.tune.app.ui.state.TuneViewModel
+import com.tune.app.ui.theme.CharcoalText
+import com.tune.app.ui.theme.MutedGreyText
+import com.tune.app.ui.theme.OffWhiteBackground
+import com.tune.app.ui.theme.OliveAccent
+import com.tune.app.ui.theme.OlivePale
+import com.tune.app.ui.theme.VioletAccent
+import com.tune.app.ui.theme.VioletPale
 
 @Composable
-fun EqualizerScreen(onBack: () -> Unit) {
-    var enabled by remember { mutableStateOf(true) }
-    val freqs = listOf("60Hz", "230Hz", "910Hz", "3.6kHz", "14kHz")
-    val values = remember { freqs.map { mutableFloatStateOf(0.5f) } }
+fun EqualizerScreen(vm: TuneViewModel, onBack: () -> Unit) {
+    val enabled by vm.equalizerEnabled.collectAsStateWithLifecycle()
+    val bands by vm.equalizerBands.collectAsStateWithLifecycle()
+    val presets by vm.equalizerPresets.collectAsStateWithLifecycle()
+    val selectedPreset by vm.equalizerSelectedPreset.collectAsStateWithLifecycle()
+    val levelRange by vm.equalizerLevelRange.collectAsStateWithLifecycle()
 
-    Column(Modifier.fillMaxSize().background(DeepTeal).padding(16.dp), verticalArrangement = Arrangement.spacedBy(18.dp)) {
-        Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-            IconButton(onClick = onBack) { Icon(Icons.Default.ArrowBackIosNew, null, tint = Color.White) }
-            Icon(Icons.Default.Equalizer, null, tint = Color.White)
-            Text("  Equalizer", style = MaterialTheme.typography.headlineLarge, color = Color.White, modifier = Modifier.weight(1f))
-            Text("MASTER", color = Color(0xFFA7B7C7), style = MaterialTheme.typography.titleMedium)
-            Switch(checked = enabled, onCheckedChange = { enabled = it })
-        }
+    LaunchedEffect(Unit) { vm.refreshEqualizerState() }
 
-        Row(
-            Modifier.fillMaxWidth().background(Color(0xFFF4A261), RoundedCornerShape(20.dp)).padding(18.dp),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically
+    Box(Modifier.fillMaxSize().background(OffWhiteBackground)) {
+        Box(
+            modifier = Modifier
+                .size(300.dp)
+                .offset(x = (-80).dp, y = (-60).dp)
+                .background(Brush.radialGradient(listOf(VioletPale.copy(alpha = 0.5f), Color.Transparent)), CircleShape)
+        )
+        Box(
+            modifier = Modifier
+                .size(250.dp)
+                .offset(x = 180.dp, y = 200.dp)
+                .background(Brush.radialGradient(listOf(OlivePale.copy(alpha = 0.4f), Color.Transparent)), CircleShape)
+        )
+
+        LazyColumn(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
-            Text("Preset: Rock", style = MaterialTheme.typography.headlineLarge, color = DeepTeal)
-            Text("⌄", style = MaterialTheme.typography.headlineLarge, color = DeepTeal)
-        }
-
-        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceAround, verticalAlignment = Alignment.Bottom) {
-            values.forEachIndexed { i, slider ->
-                Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                    Text("${((slider.floatValue - 0.5f) * 12).toInt()}dB", color = Color(0xFFE9C46A))
-                    Slider(
-                        value = slider.floatValue,
-                        onValueChange = { slider.floatValue = it },
-                        valueRange = 0f..1f,
-                        modifier = Modifier.height(240.dp).width(36.dp)
+            item {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    GlassBox(modifier = Modifier.size(44.dp), shape = CircleShape) {
+                        IconButton(onClick = onBack) { Icon(Icons.Default.ArrowBackIosNew, null, tint = VioletAccent) }
+                    }
+                    Icon(Icons.Default.Equalizer, null, tint = VioletAccent, modifier = Modifier.padding(start = 12.dp))
+                    Text(
+                        "  Equalizer",
+                        style = MaterialTheme.typography.headlineLarge,
+                        color = CharcoalText,
+                        modifier = Modifier.weight(1f)
                     )
-                    Text(freqs[i], color = Color(0xFFA7B7C7))
+                    Switch(checked = enabled, onCheckedChange = vm::setEqualizerEnabled)
                 }
             }
-        }
 
-        Canvas(
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(180.dp)
-                .background(Color(0xFF1F3D4B), RoundedCornerShape(24.dp))
-                .padding(12.dp)
-        ) {
-            val p = Path()
-            p.moveTo(0f, size.height * 0.55f)
-            p.cubicTo(size.width * 0.25f, size.height * 0.2f, size.width * 0.45f, size.height * 0.8f, size.width, size.height * 0.55f)
-            drawPath(p, Color(0xFFE9C46A))
-            repeat(20) { idx ->
-                val x = size.width / 20f * idx
-                val barH = size.height * (0.2f + (idx % 5) * 0.12f)
-                drawLine(
-                    color = if (idx % 3 == 0) Color(0xFFEF7F5E) else Color(0xFF2A9D8F),
-                    start = androidx.compose.ui.geometry.Offset(x, size.height - 20f),
-                    end = androidx.compose.ui.geometry.Offset(x, size.height - barH),
-                    strokeWidth = 8f
-                )
+            if (presets.isNotEmpty()) {
+                item {
+                    Text("Presets", color = OliveAccent, style = MaterialTheme.typography.labelSmall)
+                }
+                item {
+                    LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        itemsIndexed(presets) { idx, preset ->
+                            val active = idx == selectedPreset
+                            ClaySurface(
+                                modifier = Modifier
+                                    .height(42.dp)
+                                    .clickable { vm.applyEqualizerPreset(idx) },
+                                shape = RoundedCornerShape(14.dp),
+                                baseColor = if (active) VioletAccent else Color.White,
+                                brush = if (active) Brush.linearGradient(listOf(VioletPale, VioletAccent)) else null
+                            ) {
+                                Text(
+                                    preset,
+                                    modifier = Modifier
+                                        .padding(horizontal = 14.dp)
+                                        .align(Alignment.Center),
+                                    color = if (active) Color.White else CharcoalText
+                                )
+                            }
+                        }
+                    }
+                }
+            }
+
+            if (bands.isEmpty()) {
+                item {
+                    GlassBox(
+                        modifier = Modifier.fillMaxWidth(),
+                        shape = RoundedCornerShape(20.dp),
+                        contentPadding = androidx.compose.foundation.layout.PaddingValues(16.dp),
+                        glassAlpha = 0.88f
+                    ) {
+                        Text("Start playback to enable the device equalizer.", color = MutedGreyText)
+                    }
+                }
+            } else {
+                item {
+                    GlassBox(
+                        modifier = Modifier.fillMaxWidth(),
+                        shape = RoundedCornerShape(24.dp),
+                        contentPadding = androidx.compose.foundation.layout.PaddingValues(12.dp),
+                        glassAlpha = 0.88f
+                    ) {
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(300.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                                bands.forEachIndexed { idx, band ->
+                                    val normalized = ((band.level - levelRange.first).toFloat() /
+                                        (levelRange.second - levelRange.first).toFloat()).coerceIn(0f, 1f)
+                                    Text("${band.label}  ${band.level / 100f}dB", color = OliveAccent, style = MaterialTheme.typography.labelSmall)
+                                    Slider(
+                                        value = normalized,
+                                        onValueChange = { vm.setEqualizerBandLevel(idx, it) },
+                                        modifier = Modifier.fillMaxWidth()
+                                    )
+                                }
+                            }
+                        }
+                    }
+                }
             }
         }
     }

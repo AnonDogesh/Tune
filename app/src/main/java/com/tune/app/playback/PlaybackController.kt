@@ -1,6 +1,7 @@
 package com.tune.app.playback
 
 import android.content.Context
+import android.media.audiofx.Equalizer
 import android.net.Uri
 import androidx.media3.common.MediaItem
 import androidx.media3.common.Player
@@ -18,6 +19,7 @@ class PlaybackController @Inject constructor(
     @ApplicationContext private val context: Context
 ) {
     private val player: ExoPlayer by lazy { ExoPlayer.Builder(context).build() }
+    private var equalizer: Equalizer? = null
 
     private val _isPlaying = MutableStateFlow(false)
     val isPlaying: StateFlow<Boolean> = _isPlaying
@@ -30,6 +32,9 @@ class PlaybackController @Inject constructor(
 
     private val _trackEnded = MutableSharedFlow<Unit>(extraBufferCapacity = 1)
     val trackEnded: SharedFlow<Unit> = _trackEnded
+
+    private val _audioSessionId = MutableStateFlow(0)
+    val audioSessionId: StateFlow<Int> = _audioSessionId
 
     init {
         player.addListener(object : Player.Listener {
@@ -46,8 +51,22 @@ class PlaybackController @Inject constructor(
             override fun onEvents(player: Player, events: Player.Events) {
                 _positionMs.value = player.currentPosition
                 _durationMs.value = if (player.duration > 0) player.duration else 1L
+                val sessionId = player.audioSessionId
+                if (sessionId > 0 && _audioSessionId.value != sessionId) {
+                    _audioSessionId.value = sessionId
+                    initEqualizer(sessionId)
+                }
             }
         })
+    }
+
+    private fun initEqualizer(sessionId: Int) {
+        try {
+            equalizer?.release()
+            equalizer = Equalizer(0, sessionId).apply { enabled = true }
+        } catch (_: Throwable) {
+            equalizer = null
+        }
     }
 
     fun playFromUri(uri: String) {
@@ -70,5 +89,49 @@ class PlaybackController @Inject constructor(
     fun tick() {
         _positionMs.value = player.currentPosition
         _durationMs.value = if (player.duration > 0) player.duration else 1L
+    }
+
+    fun isEqualizerAvailable(): Boolean = equalizer != null
+
+    fun equalizerBandLevelRange(): Pair<Short, Short> {
+        val range = equalizer?.bandLevelRange ?: shortArrayOf(-1500, 1500)
+        return range[0] to range[1]
+    }
+
+    fun equalizerBandFrequenciesHz(): List<Int> {
+        val eq = equalizer ?: return emptyList()
+        return (0 until eq.numberOfBands)
+            .map { band -> eq.getCenterFreq(band.toShort()) / 1000 }
+    }
+
+    fun equalizerBandLevels(): List<Short> {
+        val eq = equalizer ?: return emptyList()
+        return (0 until eq.numberOfBands)
+            .map { band -> eq.getBandLevel(band.toShort()) }
+    }
+
+    fun equalizerPresetNames(): List<String> {
+        val eq = equalizer ?: return emptyList()
+        return (0 until eq.numberOfPresets).map { idx -> eq.getPresetName(idx.toShort()) }
+    }
+
+    fun applyEqualizerPreset(index: Int) {
+        val eq = equalizer ?: return
+        if (index in 0 until eq.numberOfPresets) {
+            eq.usePreset(index.toShort())
+        }
+    }
+
+    fun setEqualizerEnabled(enabled: Boolean) {
+        equalizer?.enabled = enabled
+    }
+
+    fun isEqualizerEnabled(): Boolean = equalizer?.enabled == true
+
+    fun setEqualizerBandLevel(band: Int, level: Short) {
+        val eq = equalizer ?: return
+        if (band in 0 until eq.numberOfBands) {
+            eq.setBandLevel(band.toShort(), level)
+        }
     }
 }
