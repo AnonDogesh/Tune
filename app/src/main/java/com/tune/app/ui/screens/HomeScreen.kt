@@ -35,6 +35,7 @@ import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -55,6 +56,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.window.Dialog
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil.compose.AsyncImage
@@ -256,7 +258,8 @@ fun HomeScreen(
                 item { Text("No songs found yet. Grant permission and refresh.", color = MutedGreyText) }
             } else {
                 items(songs) { song ->
-                    var expanded by remember(song.id) { mutableStateOf(false) }
+                    var showRemovePopup by remember(song.id) { mutableStateOf(false) }
+                    var showConfirmRemove by remember(song.id) { mutableStateOf(false) }
                     val rowShape = RoundedCornerShape(28.dp)
                     Card(
                         modifier = Modifier
@@ -299,14 +302,65 @@ fun HomeScreen(
                                 }
                                 Text(song.duration, style = MaterialTheme.typography.labelLarge, color = MutedGreyText)
                                 Box {
-                                    IconButton(onClick = { expanded = true }) {
+                                    IconButton(onClick = { showRemovePopup = true }) {
                                         Icon(Icons.Default.MoreVert, contentDescription = null, tint = MutedGreyText)
                                     }
-                                    DropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
-                                        DropdownMenuItem(text = { Text("Remove from app library") }, onClick = {
-                                            vm.removeSongFromLibrary(song.id)
-                                            expanded = false
-                                        })
+                                    DropdownMenu(
+                                        expanded = showRemovePopup,
+                                        onDismissRequest = { showRemovePopup = false },
+                                        shape = RoundedCornerShape(16.dp),
+                                        containerColor = OffWhiteBackground.copy(alpha = 0.98f)
+                                    ) {
+                                        DropdownMenuItem(
+                                            text = { Text("Remove from app library", color = CharcoalText) },
+                                            onClick = {
+                                                showRemovePopup = false
+                                                showConfirmRemove = true
+                                            }
+                                        )
+                                    }
+                                }
+                            }
+                        }
+                    }
+
+                    if (showConfirmRemove) {
+                        Dialog(onDismissRequest = { showConfirmRemove = false }) {
+                            Box(
+                                modifier = Modifier
+                                    .fillMaxWidth(0.92f)
+                                    .clip(RoundedCornerShape(20.dp))
+                                    .background(OffWhiteBackground.copy(alpha = 0.97f))
+                                    .border(
+                                        width = 1.dp,
+                                        color = Color.White.copy(alpha = 0.85f),
+                                        shape = RoundedCornerShape(20.dp)
+                                    )
+                                    .padding(16.dp)
+                            ) {
+                                Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                                    Text("Remove song?", color = CharcoalText, style = MaterialTheme.typography.titleLarge)
+                                    Text(
+                                        "This song will be hidden from your app library.",
+                                        color = MutedGreyText,
+                                        style = MaterialTheme.typography.bodyMedium
+                                    )
+                                    Row(
+                                        modifier = Modifier.fillMaxWidth(),
+                                        horizontalArrangement = Arrangement.End
+                                    ) {
+                                        OutlinedButton(onClick = { showConfirmRemove = false }) {
+                                            Text("Cancel")
+                                        }
+                                        Button(
+                                            onClick = {
+                                                vm.removeSongFromLibrary(song.id)
+                                                showConfirmRemove = false
+                                            },
+                                            modifier = Modifier.padding(start = 8.dp)
+                                        ) {
+                                            Text("Remove")
+                                        }
                                     }
                                 }
                             }

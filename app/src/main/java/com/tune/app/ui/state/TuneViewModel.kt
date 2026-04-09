@@ -24,6 +24,7 @@ class TuneViewModel @Inject constructor(
     private val userState: UserStateRepository,
     private val playback: PlaybackController
 ) : ViewModel() {
+    data class EqBand(val label: String, val level: Short)
 
     enum class RepeatMode { Off, All, One }
 
@@ -33,6 +34,7 @@ class TuneViewModel @Inject constructor(
     private val playlistSongs = MutableStateFlow(userState.loadPlaylistSongs())
     private val favoriteSongIds = MutableStateFlow(userState.loadFavorites())
     private val hiddenSongIds = MutableStateFlow(userState.loadHiddenSongs())
+    private val excludedFolders = MutableStateFlow(userState.loadExcludedFolders())
 
     private val nowPlayingSong = MutableStateFlow<Song?>(null)
     private val activeQueue = MutableStateFlow<List<Song>>(emptyList())
@@ -40,12 +42,34 @@ class TuneViewModel @Inject constructor(
     private val shuffleEnabled = MutableStateFlow(false)
     private val repeatMode = MutableStateFlow(RepeatMode.Off)
     private val recentPlayedIds = MutableStateFlow<List<Long>>(emptyList())
+    private val eqEnabled = MutableStateFlow(false)
+    private val eqBands = MutableStateFlow<List<EqBand>>(emptyList())
+    private val eqPresetNames = MutableStateFlow<List<String>>(emptyList())
+    private val eqSelectedPreset = MutableStateFlow(-1)
+    private val eqLevelRange = MutableStateFlow((-1500).toShort() to 1500.toShort())
 
     private val rawSongs: StateFlow<List<Song>> = repository.observeSongs().stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
-    val songs: StateFlow<List<Song>> = combine(rawSongs, hiddenSongIds) { all, hidden ->
-        all.filterNot { it.id in hidden }
+    val songs: StateFlow<List<Song>> = combine(rawSongs, hiddenSongIds, excludedFolders) { all, hidden, excluded ->
+        all.filterNot { song ->
+            song.id in hidden || (song.folderPath.isNotBlank() && song.folderPath in excluded)
+        }
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+
+    val libraryFolders: StateFlow<List<String>> = rawSongs
+        .combine(excludedFolders) { all, _ ->
+            all.map { it.folderPath.trim() }
+                .filter { it.isNotBlank() }
+                .distinct()
+                .sorted()
+        }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+
+    val excludedLibraryFolders: StateFlow<Set<String>> = excludedFolders
+
+    val visibleAudioSizeBytes: StateFlow<Long> = songs
+        .combine(excludedFolders) { visibleSongs, _ -> visibleSongs.sumOf { it.sizeBytes } }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), 0L)
 
     val filteredSongs: StateFlow<List<Song>> = combine(songs, query) { allSongs, q ->
         if (q.isBlank()) allSongs else allSongs.filter {
@@ -73,6 +97,11 @@ class TuneViewModel @Inject constructor(
     val isShuffleEnabled: StateFlow<Boolean> = shuffleEnabled
     val currentRepeatMode: StateFlow<RepeatMode> = repeatMode
     val customPlaylistNames: StateFlow<List<String>> = customPlaylists
+    val equalizerEnabled: StateFlow<Boolean> = eqEnabled
+    val equalizerBands: StateFlow<List<EqBand>> = eqBands
+    val equalizerPresets: StateFlow<List<String>> = eqPresetNames
+    val equalizerSelectedPreset: StateFlow<Int> = eqSelectedPreset
+    val equalizerLevelRange: StateFlow<Pair<Short, Short>> = eqLevelRange
 
     init {
         viewModelScope.launch {
@@ -83,6 +112,11 @@ class TuneViewModel @Inject constructor(
         }
         viewModelScope.launch {
             playback.trackEnded.collect { handleTrackEnded() }
+        }
+        viewModelScope.launch {
+            playback.audioSessionId.collect {
+                refreshEqualizerState()
+            }
         }
     }
 
@@ -212,6 +246,11 @@ class TuneViewModel @Inject constructor(
         if (nowPlayingSong.value?.id == songId) nextSong()
     }
 
+    fun setExcludedFolders(folders: Set<String>) {
+        excludedFolders.value = folders
+        userState.saveExcludedFolders(folders)
+    }
+
     fun toggleShuffle() { shuffleEnabled.update { !it } }
 
     fun cycleRepeatMode() {
@@ -219,6 +258,52 @@ class TuneViewModel @Inject constructor(
             RepeatMode.Off -> RepeatMode.All
             RepeatMode.All -> RepeatMode.One
             RepeatMode.One -> RepeatMode.Off
+        }
+    }
+
+    fun refreshEqualizerState() {
+        if (!playback.isEqualizerAvailable()) {
+            eqEnabled.value = false
+            eqBands.value = emptyList()
+            eqPresetNames.value = emptyList()
+            eqSelectedPreset.value = -1
+            return
+        }
+
+        eqEnabled.value = playback.isEqualizerEnabled()
+        eqLevelRange.value = playback.equalizerBandLevelRange()
+        val freqs = playback.equalizerBandFrequenciesHz()
+        val levels = playback.equalizerBandLevels()
+        eqBands.value = freqs.zip(levels).map { (freq, level) ->
+            EqBand(label = formatEqFreq(freq), level = level)
+        }
+        eqPresetNames.value = playback.equalizerPresetNames()
+    }
+
+    fun setEqualizerEnabled(enabled: Boolean) {
+        playback.setEqualizerEnabled(enabled)
+        eqEnabled.value = enabled
+    }
+
+    fun setEqualizerBandLevel(index: Int, normalized: Float) {
+        val (min, max) = eqLevelRange.value
+        val level = (min + ((max - min) * normalized)).toInt().toShort()
+        playback.setEqualizerBandLevel(index, level)
+        refreshEqualizerState()
+        eqSelectedPreset.value = -1
+    }
+
+    fun applyEqualizerPreset(index: Int) {
+        playback.applyEqualizerPreset(index)
+        eqSelectedPreset.value = index
+        refreshEqualizerState()
+    }
+
+    private fun formatEqFreq(freqHz: Int): String {
+        return if (freqHz >= 1000) {
+            String.format("%.1fkHz", freqHz / 1000f)
+        } else {
+            "${freqHz}Hz"
         }
     }
 }

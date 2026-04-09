@@ -11,5 +11,7 @@ data class Song(
     val album: String,
     val duration: String,
     val path: String = "",
-    val albumArtUri: String = ""
+    val albumArtUri: String = "",
+    val folderPath: String = "",
+    val sizeBytes: Long = 0L
 )
