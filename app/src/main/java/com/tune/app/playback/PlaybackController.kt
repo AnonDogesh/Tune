@@ -51,10 +51,12 @@ class PlaybackController @Inject constructor(
             override fun onEvents(player: Player, events: Player.Events) {
                 _positionMs.value = player.currentPosition
                 _durationMs.value = if (player.duration > 0) player.duration else 1L
-                val sessionId = player.audioSessionId
-                if (sessionId > 0 && _audioSessionId.value != sessionId) {
-                    _audioSessionId.value = sessionId
-                    initEqualizer(sessionId)
+            }
+
+            override fun onAudioSessionIdChanged(audioSessionId: Int) {
+                if (audioSessionId > 0 && _audioSessionId.value != audioSessionId) {
+                    _audioSessionId.value = audioSessionId
+                    initEqualizer(audioSessionId)
                 }
             }
         })

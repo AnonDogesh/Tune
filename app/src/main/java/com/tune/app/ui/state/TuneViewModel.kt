@@ -46,7 +46,7 @@ class TuneViewModel @Inject constructor(
     private val eqBands = MutableStateFlow<List<EqBand>>(emptyList())
     private val eqPresetNames = MutableStateFlow<List<String>>(emptyList())
     private val eqSelectedPreset = MutableStateFlow(-1)
-    private val eqLevelRange = MutableStateFlow(-1500.toShort() to 1500.toShort())
+    private val eqLevelRange = MutableStateFlow((-1500).toShort() to 1500.toShort())
 
     private val rawSongs: StateFlow<List<Song>> = repository.observeSongs().stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
